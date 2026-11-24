@@ -8,6 +8,9 @@ const CAT = { mfg: 'Manufactured', qa: 'Quality Assured' };
 // keep Greek letters lower-case inside uppercase mono labels (α must not become Α)
 const up = (s) => esc(s).replace(/([α-ωΔ]+)/g, '<span class="nt">$1</span>');
 const years = () => new Date().getFullYear() - site.founded;
+// Responsive plant photo: WebP at 800/1400/2000w with a full-res JPEG fallback (files in public/assets/img/).
+const PHOTO_W = [800, 1400, 2000];
+const photo = (name, { alt = '', sizes, base = '', attrs = '' }) => `<picture><source type="image/webp" srcset="${PHOTO_W.map(w => `${base}assets/img/${name}-${w}.webp ${w}w`).join(', ')}" sizes="${sizes}"><img src="${base}assets/img/${name}.jpg" alt="${esc(alt)}" width="2000" height="1500" decoding="async" ${attrs}></picture>`;
 
 // ───────────────────────────── shell ─────────────────────────────
 function head({ title, desc, base, canonical, jsonld }) {
@@ -137,13 +140,13 @@ export function renderIndex(products, ordered) {
   return head({ title: 'Alphapine & Aromatics — Terpene Derivatives, Essential Oils & Aroma Chemicals', desc: hero.body, base, canonical: '/', jsonld }) + header(base, products, true) + `
 <main id="main">
 <section class="hero" aria-label="Introduction">
-  <div class="hero-bg"><img src="assets/img/hero-forest.svg" alt="" fetchpriority="high"></div>
+  <div class="hero-bg">${photo(hero.photo, { sizes: '(max-width: 760px) 250vw, 100vw', attrs: `fetchpriority="high" style="object-position:${hero.photoPos}"` })}</div>
   <div class="hero-ov"></div>
   <div class="wrap hero-in">
     <span class="pill-glass fade-in" style="animation-delay:.05s">${esc(hero.pill)}</span>
     <h1>${h1.map(w => w === '<br>' ? '<br>' : `<span class="w" style="--i:${wi++}">${w}</span> `).join('')}</h1>
     <p class="fade-in">${esc(hero.body)}</p>
-    <div class="hero-ctas fade-in" style="animation-delay:.9s"><a class="btn btn-teal lg" href="#catalogue">Explore Products ${icon('arrow')}</a><button class="btn btn-ghost lg" data-quote>Request a Quote</button></div>
+    <div class="hero-ctas fade-in" style="animation-delay:.9s"><a class="btn btn-teal lg" href="#catalogue">Explore Products ${icon('arrow')}</a><button class="btn btn-ghost lg" data-quote>Request a Quote</button><a class="btn btn-ghost lg" href="${hero.brochure.file}" download="${hero.brochure.name}" type="application/pdf">Download Brochure ${icon('download')}</a></div>
   </div>
 </section>
 <div class="ticker" aria-label="Product lines"><div class="ticker-track"><ul>${tItems}</ul><ul aria-hidden="true">${tItems}</ul></div></div>
@@ -173,7 +176,7 @@ export function renderIndex(products, ordered) {
   <div class="wrap">
     <div class="sec-head c" data-reveal><p class="eyebrow c nodash" style="letter-spacing:.24em">Manufacturing excellence</p><h2 class="h2">Inside Our <em>Facilities</em></h2></div>
     <div class="carousel" data-carousel data-reveal="scale" aria-roledescription="carousel" aria-label="Facilities">
-      <div class="slides" tabindex="0">${facilities.map((f, i) => `<figure class="slide" aria-roledescription="slide" aria-label="${i + 1} of ${facilities.length}" style="margin:0"><img src="assets/img/${f.img}" alt="Illustration: ${esc(f.title)}" loading="${i ? 'lazy' : 'eager'}"><figcaption class="cap"><h3>${esc(f.title)}</h3><p>${esc(f.text)}</p></figcaption></figure>`).join('')}</div>
+      <div class="slides" tabindex="0">${facilities.map((f, i) => `<figure class="slide photo" aria-roledescription="slide" aria-label="${i + 1} of ${facilities.length}" style="margin:0;--op:${f.pos};--op-m:${f.posM}">${photo(f.photo, { alt: f.alt, sizes: '(max-width: 760px) 167vw, (max-width: 1280px) 100vw, 1200px', attrs: `loading="${i ? 'lazy' : 'eager'}"` })}<figcaption class="cap"><h3>${esc(f.title)}</h3><p>${esc(f.text)}</p></figcaption></figure>`).join('')}</div>
       <button class="cbtn prev" data-prev aria-label="Previous slide">${icon('left')}</button><button class="cbtn next" data-next aria-label="Next slide">${icon('right')}</button>
       <div class="dots">${facilities.map((_, i) => `<button aria-label="Go to slide ${i + 1}"${i === 0 ? ' class="on"' : ''}></button>`).join('')}</div>
     </div>
