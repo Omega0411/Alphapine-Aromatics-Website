@@ -182,6 +182,54 @@
     const r = c.getBoundingClientRect(); c.style.setProperty('--mx', `${e.clientX - r.left}px`); c.style.setProperty('--my', `${e.clientY - r.top}px`);
   }, { passive: true }));
 
+  /* ── TDS / MSDS request (product pages) — separate from the quote form ── */
+  const docsForm = $('form[data-docs]');
+  if (docsForm) {
+    const done = $('.done', docsForm.parentElement), sec = document.getElementById('tds-msds');
+    $$('[data-docs-req]').forEach(a => a.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (a.dataset.docsReq) docsForm.doc.value = a.dataset.docsReq;
+      sec.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+      history.replaceState(null, '', '#tds-msds');
+      if (!docsForm.hidden) setTimeout(() => docsForm.name.focus({ preventScroll: true }), reduce ? 0 : 700);
+    }));
+    docsForm.addEventListener('input', (e) => e.target.closest('.field') && e.target.closest('.field').classList.remove('bad'));
+    docsForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const d = Object.fromEntries(new FormData(docsForm));
+      let ok = true;
+      const bad = (n) => { docsForm[n].closest('.field').classList.add('bad'); ok = false; };
+      if (!d.name || !d.name.trim()) bad('name');
+      if (!d.company || !d.company.trim()) bad('company');
+      if (!validEmail(d.email || '')) bad('email');
+      if (!ok) { $('.bad input', docsForm).focus(); return; }
+      const docLabel = d.doc === 'Both' ? 'TDS & MSDS' : d.doc;
+      const payload = { name: d.name, company: d.company, email: d.email, phone: d.phone, country: d.country, product: d.product, document: docLabel, type: 'TDS / MSDS request', context: 'tds-msds', page: location.pathname, submitted_at: new Date().toISOString() };
+      const btn = $('.submit', docsForm);
+      let sent = false;
+      if (SITE.leadEndpoint) {
+        btn.disabled = true;
+        try { const r = await fetch(SITE.leadEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json', ...(SITE.leadHeaders || {}) }, body: JSON.stringify(payload) }); sent = r.ok; } catch { sent = false; }
+        btn.disabled = false;
+      }
+      const fallback = $('[data-docs-fallback]', done);
+      if (sent) {
+        $('h4', done).textContent = 'Thank you.';
+        $('[data-done-text]', done).textContent = `Your request for ${docLabel} for ${d.product} has been received. Our team will share the document on your email shortly.`;
+        fallback.hidden = true;
+      } else {
+        // no lead endpoint configured (or it failed): hand the request to email / WhatsApp rather than claim it was received
+        const text = [`${docLabel} request — ${d.product}`, `Name: ${d.name}`, `Company: ${d.company}`, `Work email: ${d.email}`, d.phone && `Mobile / WhatsApp: ${d.phone}`, d.country && `Country: ${d.country}`].filter(Boolean).join('\n');
+        $('h4', done).textContent = 'Your request is ready to send.';
+        $('[data-done-text]', done).textContent = `Send your request for ${docLabel} for ${d.product} by email or WhatsApp, and our team will share the document on your email.`;
+        $('[data-done-mail]', done).href = `mailto:${SITE.email}?subject=${encodeURIComponent(`${docLabel} request: ${d.product}`)}&body=${encodeURIComponent(text)}`;
+        $('[data-done-wa]', done).href = waLink(text);
+        fallback.hidden = false;
+      }
+      docsForm.hidden = true; done.classList.add('show');
+    });
+  }
+
   /* ── year ── */
   $$('[data-year]').forEach(el => el.textContent = new Date().getFullYear());
 }

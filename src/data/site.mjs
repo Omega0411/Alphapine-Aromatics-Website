@@ -6,13 +6,14 @@ export const site = {
   short: 'Alphapine & Aromatics',
   founded: 1972,
   plantYear: 2021,
-  email: 'sales@alphapine.in',          // TODO: confirm
-  phoneDisplay: '+91 00000 00000',      // TODO: replace with real number
-  whatsapp: '910000000000',             // TODO: replace (country code + number, digits only)
+  email: 'reachus@alphapineandaromatics.com',
+  phoneDisplay: '+91 99991 99229',
+  whatsapp: '919999199229',             // country code + number, digits only
+  address: 'Alphapine & Aromatics Pvt. Ltd. — C-17, C-18, C-19 Industrial Area, Pandoga, UNA, H.P. – 177207',
   url: 'https://alphapine.in',          // TODO: production domain (used for canonical/OG tags)
   social: [
-    ['LinkedIn', '#', 'in'],
-    ['Instagram', '#', 'ig'],
+    ['LinkedIn', 'https://www.linkedin.com/company/alphapine-and-aromatics-pvt-ltd/', 'in'],
+    ['Instagram', 'https://www.instagram.com/alphapinearomaticspvt/', 'ig'],
     ['YouTube', '#', 'yt'],
     ['WhatsApp', 'wa', 'wa'],
   ],
@@ -150,8 +151,8 @@ export const quality = {
 export const resources = {
   intro: 'Access comprehensive documentation including our product catalogue, Certificates of Analysis and company information — everything you need to make informed procurement decisions.',
   items: [
-    { icon: 'book', title: 'Company Brochure', text: "Overview of Alphapine's heritage, plant, laboratory and product portfolio.", meta: 'Shared by our team on enquiry', file: null },
-    { icon: 'file', title: 'Product Catalogue 2025', text: 'All 16 product lines — grades, CAS numbers, characteristics, applications and safety notes.', meta: 'PDF · 59 KB', file: 'assets/docs/alphapine-product-catalogue-2025.pdf' },
+    // same PDF as the hero "Download Brochure" button (hero.brochure)
+    { icon: 'file', title: 'Download Brochure', text: 'All 16 product lines — grades, CAS numbers, characteristics, applications and safety notes.', meta: 'PDF · 59 KB', file: 'assets/docs/alphapine-product-catalogue-2025.pdf' },
   ],
 };
 

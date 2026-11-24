@@ -68,13 +68,13 @@ function footer(base, isHome) {
   <div class="wrap">
     <div class="f-top">
       <div>
-        <p class="f-brand">Alphapine &amp;<br>Aromatics Pvt. Ltd</p>
+        <a class="f-logo" href="${base}index.html" aria-label="Alphapine &amp; Aromatics — home"><img src="${base}assets/img/logo-dark-footer.png" alt="Alphapine &amp; Aromatics Pvt. Ltd." width="150" height="116" loading="lazy"></a>
         <p>Formerly New Jolly Oil Company. Established ${site.founded}. Manufacturing since ${site.plantYear}. Sixteen product lines across aroma chemicals, essential oils and terpene derivatives — verified batch by batch.</p>
         <div class="socials">${site.social.map(([n, h, i]) => `<a ${h === 'wa' ? 'data-wa="Hello Alphapine team, I have an enquiry." href="#"' : `href="${h}"`} aria-label="${n}" target="_blank" rel="noopener">${icon(i)}</a>`).join('')}</div>
       </div>
       <div><h4>Catalogue</h4><ul><li><a href="${link('catalogue')}" data-filter-link="mfg">Manufactured</a></li><li><a href="${link('catalogue')}" data-filter-link="qa">Quality Assured</a></li><li><a href="${base}products/terpineol.html">Grades &amp; Purity</a></li><li><a href="#" data-quote data-type="Sample request">Sample Request</a></li></ul></div>
       <div><h4>Company</h4><ul><li><a href="${link('about')}">About</a></li><li><a href="${link('plant')}">Plant &amp; Lab</a></li><li><a href="${link('quality')}">Certifications</a></li><li><a href="${link('faq')}">FAQ</a></li></ul></div>
-      <div><h4>Contact</h4><ul><li><a href="mailto:${site.email}">${site.email}</a></li><li><a href="tel:${site.phoneDisplay.replace(/\s/g, '')}">${site.phoneDisplay}</a></li><li><a href="#" data-wa="Hello Alphapine team, I have an enquiry.">WhatsApp Business</a></li><li><a href="#" data-quote>Ask a query</a></li></ul></div>
+      <div><h4>Contact</h4><ul><li><a href="mailto:${site.email}">${site.email}</a></li><li><a href="tel:${site.phoneDisplay.replace(/\s/g, '')}">${site.phoneDisplay}</a></li><li><a href="#" data-wa="Hello Alphapine team, I have an enquiry.">WhatsApp Business</a></li><li><a href="#" data-quote>Ask a query</a></li><li><address class="f-addr">${esc(site.address)}</address></li></ul></div>
     </div>
     <div class="f-bot"><span>© <span data-year>${new Date().getFullYear()}</span> Alphapine &amp; Aromatics Pvt. Ltd. · All rights reserved</span><nav><a href="#">Privacy</a><a href="#">Terms</a><a href="${base}sitemap.xml">Sitemap</a></nav></div>
   </div>
@@ -217,10 +217,10 @@ export function renderIndex(products, ordered) {
 <section class="sec contact" id="contact">
   <div class="wrap c-grid">
     <div data-reveal><p class="eyebrow nodash">Resources &amp; downloads</p><h2 class="h2">Download Our<br><em>Brochure</em> &amp; <em>Technical Resources</em></h2><p class="lede">${esc(resources.intro)}</p>
-      ${resources.items.map(r => `<button class="res" data-res="${r.file ? 'catalogue' : 'brochure'}"><span class="ib">${icon(r.icon)}</span><span><b>${r.title}</b><small>${r.text}</small><em>${r.meta}</em></span><span class="dl">${icon('download')}</span></button>`).join('')}
+      ${resources.items.map(r => `<a class="res" href="${r.file}" download="${hero.brochure.name}" type="application/pdf"><span class="ib">${icon(r.icon)}</span><span><b>${r.title}</b><small>${r.text}</small><em>${r.meta}</em></span><span class="dl">${icon('download')}</span></a>`).join('')}
     </div>
     <div class="form-card" data-reveal style="--i:1">
-      <h3>Fill The Form Below To Connect Directly</h3><p class="sub">Fill in your details below and our technical team will reach out with customized information.</p>
+      <h3>Fill the Form for Any Product Related Enquiry or Requesting a Quote</h3><p class="sub">Fill in your details below and our technical team will reach out with customized information.</p>
       <form data-lead data-context="brochure" novalidate>${formFields(products)}<button class="submit" type="submit">Submit Inquiry &amp; Download Brochure</button></form>
       ${doneBlock()}
     </div>
@@ -337,7 +337,7 @@ export function renderPDP(p, products) {
       <div data-reveal style="--i:3"><p class="pdp-lead">${esc(p.lead)}</p><ul class="bul">${p.bullets.map(b => `<li>${esc(b)}</li>`).join('')}</ul></div>
       ${p.grades.length > 1 ? `<div class="grades" data-reveal style="--i:3"><span class="k">Available grades · tap to quote</span><div class="row">${p.grades.map(g => `<button ${quoteAttrs} data-grade="${esc(g)}">${esc(g)}</button>`).join('')}</div></div>` : ''}
       <div class="specs" data-reveal style="--i:4">${p.specs.map(([l, v, u, n]) => `<div class="spec"><small>${up(l)}</small><b>${esc(v)}${u ? `<span>${esc(u)}</span>` : ''}</b><i>${esc(n)}</i></div>`).join('')}</div>
-      <div class="bulk" data-reveal style="--i:5"><p class="eyebrow">Direct procurement</p><h3>Need this in <em>bulk?</em></h3><p>MOQ from 25 kg. Sample dispatch within 48 hours. Certificate of Analysis with every batch.</p><div class="row"><button class="btn btn-rust sm" ${quoteAttrs}>Request a Quote ${icon('arrow')}</button><a class="btn btn-line sm" href="#" data-wa="${esc(waMsg)}">${icon('wa')} WhatsApp</a></div></div>
+      <div class="bulk" data-reveal style="--i:5"><p class="eyebrow">Direct procurement</p><h3>Need this in <em>bulk?</em></h3><p>MOQ from 25 kg. Sample dispatch within 48 hours. Certificate of Analysis with every batch.</p><div class="row"><a class="btn btn-rust sm" href="#tds-msds" data-docs-req="Both">Request TDS &amp; MSDS ${icon('arrow')}</a></div></div>
     </div>
   </div>
 </section>
@@ -424,6 +424,31 @@ export function renderPDP(p, products) {
       <div class="row"><button class="btn btn-rust" ${quoteAttrs}>Request a Quote ${icon('arrow')}</button><a class="btn btn-wa" href="#" data-wa="${esc(waMsg)}">${icon('wa')} Chat on WhatsApp</a><button class="btn btn-line" ${quoteAttrs} data-type="Sample request">${icon('sample')} Request Sample</button></div></div>
     <div data-reveal style="--i:1">
       ${[['shield', 'GC-MS Verified Batches', 'Every batch profiled in-house before dispatch.'], ['trend', 'Bulk Pricing Available', 'Tiered pricing for 500 kg+ and recurring orders.'], ['globe', 'Domestic & Export Supply', 'Logistics and documentation confirmed with your quote.'], ['clock', '48-Hour Sample Dispatch', 'Evaluate the grade on your own bench first.']].map(([i, t, s]) => `<div class="feat"><span class="ib">${icon(i)}</span><span><b>${t}</b><small>${s}</small></span></div>`).join('')}
+    </div>
+  </div>
+</section>
+
+<section class="sec contact docs" id="tds-msds" aria-labelledby="docs-title">
+  <div class="wrap-n c-grid">
+    <div data-reveal><p class="eyebrow nodash">Technical documents</p><h2 class="h2" id="docs-title">Request <em>TDS</em> &amp; <em>MSDS</em></h2><p class="lede">The Technical Data Sheet and Material Safety Data Sheet for ${esc(plain)} — shared by our team on your work email.</p>
+      <div class="res doc-i"><span class="ib">${icon('file')}</span><span><b>TDS · Technical Data Sheet</b><small>Specifications, physical constants and grade details for ${esc(plain)}.</small></span></div>
+      <div class="res doc-i"><span class="ib">${icon('shield')}</span><span><b>MSDS · Material Safety Data Sheet</b><small>Hazards, safe handling, storage and transport information.</small></span></div>
+    </div>
+    <div class="form-card" data-reveal style="--i:1">
+      <h3>Request technical documents</h3><p class="sub">Share your details and we will email the requested documents for this product.</p>
+      <form data-docs novalidate>
+        <div class="fgrid">
+          <div class="field"><label for="d-name">Full Name *</label><input id="d-name" name="name" required autocomplete="name" placeholder="Your full name"><span class="err">Please enter your name.</span></div>
+          <div class="field"><label for="d-company">Company Name *</label><input id="d-company" name="company" required autocomplete="organization" placeholder="Your organization"><span class="err">Please enter your company name.</span></div>
+          <div class="field"><label for="d-email">Work Email *</label><input id="d-email" name="email" type="email" required autocomplete="email" placeholder="you@company.com"><span class="err">Please enter a valid work email.</span></div>
+          <div class="field"><label for="d-phone">Mobile / WhatsApp</label><input id="d-phone" name="phone" type="tel" autocomplete="tel" placeholder="+91 …"></div>
+          <div class="field"><label for="d-country">Country</label><input id="d-country" name="country" autocomplete="country-name" placeholder="e.g. India"></div>
+          <div class="field"><label for="d-product">Product Name</label><input id="d-product" name="product" value="${esc(p.name)}" readonly></div>
+          <div class="field full"><label for="d-doc">Document Requested</label><select id="d-doc" name="doc"><option value="TDS">TDS</option><option value="MSDS">MSDS</option><option value="Both" selected>Both (TDS &amp; MSDS)</option></select></div>
+        </div>
+        <button class="submit" type="submit">Submit Request</button>
+      </form>
+      <div class="done" aria-live="polite"><div class="tick">${icon('check')}</div><h4></h4><p data-done-text></p><div class="row" data-docs-fallback hidden><a class="btn btn-out" data-done-mail href="#">${icon('mail')} Send via Email</a><a class="btn btn-wa" data-done-wa href="#" target="_blank" rel="noopener">${icon('wa')} Send via WhatsApp</a></div></div>
     </div>
   </div>
 </section>
