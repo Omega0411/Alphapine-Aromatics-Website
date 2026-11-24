@@ -31,6 +31,10 @@ export const hero = {
   pill: 'B2B Chemical Manufacturing Excellence',
   // Design copy said "pharma-grade synthetic camphor" — not in the 16-product catalogue, so it is not claimed here.
   body: "India's trusted manufacturer of high-purity terpene derivatives, essential oils and aroma chemicals — delivering precision chemistry to pharmaceutical, FMCG and industrial sectors worldwide.",
+  // Plant photo: assets/img/<photo>-{800,1400,2000}.webp + <photo>.jpg fallback. Decorative behind the headline.
+  photo: 'hero-plant-tank-farm',
+  photoPos: '50% 62%',
+  brochure: { file: 'assets/docs/alphapine-product-catalogue-2025.pdf', name: 'Alphapine-Aromatics-Product-Catalogue.pdf' },
 };
 
 // [label, product slug | null] — null links to the catalogue section
@@ -49,12 +53,13 @@ export const heritage = {
 
 export const catalogueIntro = 'Seven products manufactured at our fully automated GTO plant, commissioned in 2021. Nine quality-assured lines sourced from verified producers and re-tested in our in-house lab before dispatch. Every batch profiled. Every grade declared.';
 
+// Real plant photos: assets/img/<photo>-{800,1400,2000}.webp + <photo>.jpg fallback.
+// pos / posM = object-position on desktop (wide crop) / mobile (portrait crop).
 export const facilities = [
-  { img: 'facility-plant.svg', title: 'Industrial Manufacturing Plant', text: 'Fully automated plant commissioned in 2021 — Gum Turpentine Oil is the exclusive feedstock, with no pine needles in the process.' },
-  { img: 'facility-columns.svg', title: 'Packed Distillation Columns', text: 'Engineered for precise fraction separation — the heart of our controlled fractional distillation.' },
-  { img: 'facility-reactor.svg', title: 'Reactor Systems', text: 'Reactors for controlled chemical transformations across our manufactured product lines.' },
-  { img: 'facility-thermic.svg', title: 'Thermic Fluid Heating', text: 'Stable, uniform heat transfer across operations — the basis of consistent, high-purity output.' },
-  { img: 'facility-lab.svg', title: 'In-House Quality Laboratory', text: 'GC-MS, specific gravity, refractive index, optical rotation, flash point and odour evaluation — before every dispatch.' },
+  { photo: 'facility-plant-exterior', pos: '50% 10%', posM: '66% 50%', alt: 'Alphapine & Aromatics plant at the main gate, with the steel distillation tower and cooling towers rising behind the building', title: 'Our Manufacturing Plant', text: 'Fully automated plant commissioned in 2021. The steel tower houses our packed distillation columns, with Gum Turpentine Oil as the exclusive feedstock — no pine needles in the process.' },
+  { photo: 'facility-weighbridge-tank-farm', pos: '50% 46%', posM: '42% 50%', alt: 'On-site weighbridge in front of a bulk storage tank, stacked dispatch drums and hydrant fire-protection points', title: 'Storage, Weighing & Dispatch', text: 'Bulk storage tanks, an on-site weighbridge for every inbound and outbound load, and drums staged for dispatch — with hydrant and hose-reel fire protection across the yard.' },
+  { photo: 'facility-process-pumps', pos: '50% 60%', posM: '38% 50%', alt: 'Row of blue centrifugal process pumps with stainless-steel pipework and pressure gauges beside storage tanks', title: 'Process Pumps & Transfer Lines', text: 'A dedicated bank of centrifugal pumps, stainless-steel pipework and pressure gauges moves material between storage and the distillation process.' },
+  { photo: 'facility-quality-lab', pos: '50% 88%', posM: '62% 50%', alt: 'Quality laboratory bench with a magnetic stirrer hot plate, heating mantle with round-bottom flask, overhead stirrer and labelled terpene samples', title: 'In-House Quality Laboratory', text: 'Bench-scale distillation and sample preparation, backed by GC-MS, specific gravity, refractive index, optical rotation, flash point and odour evaluation — before every dispatch.' },
 ];
 
 export const plant = {

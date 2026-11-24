@@ -185,6 +185,11 @@ sub{font-size:.62em;vertical-align:-.25em;line-height:0}
 .dots button{width:7px;height:7px;border-radius:99px;background:rgba(255,255,255,.55);transition:width .35s var(--ease),background .35s;padding:0}
 .dots button.on{width:34px;background:var(--teal)}
 .dots button::before{content:"";display:block;width:24px;height:24px;margin:-8px}
+/* real plant photos in the carousel: full colour, per-slide crop (--op desktop, --op-m mobile) */
+.slide.photo img{filter:none;object-position:var(--op,50% 50%)}
+.slide.photo::after{background:linear-gradient(0deg,rgba(4,26,22,.9) 0%,rgba(4,26,22,.62) 30%,rgba(4,26,22,.12) 58%,transparent 75%)}
+@media (max-width:760px){.slide.photo img{object-position:var(--op-m,var(--op,50% 50%))}}
+.btn[download]:hover .ic{transform:translateY(2px)}
 
 /* ── plant (dark) ── */
 .plant{background:var(--forest-900);color:#fff}
