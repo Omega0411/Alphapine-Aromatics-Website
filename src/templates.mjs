@@ -1,6 +1,6 @@
 // Page templates. Pure functions: data in → HTML string out.
 import { icon, molecule, formulaHTML, flaskArt, sourceArt, chromArt, processArt, appArt, drumsArt, bottleArt } from './lib/art.mjs';
-import { site, nav, hero, ticker, heritage, catalogueIntro, facilities, plant, quality, resources, inquiryTypes, faq } from './data/site.mjs';
+import { site, nav, hero, ticker, heritage, catalogueIntro, facilities, plant, quality, resources, inquiryTypes, faq, industries, industriesIntro } from './data/site.mjs';
 import { NOTES } from './data/products.mjs';
 
 export const esc = (s = '') => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -10,7 +10,7 @@ const up = (s) => esc(s).replace(/([α-ωΔ]+)/g, '<span class="nt">$1</span>');
 const years = () => new Date().getFullYear() - site.founded;
 // Responsive plant photo: WebP at 800/1400/2000w with a full-res JPEG fallback (files in public/assets/img/).
 const PHOTO_W = [800, 1400, 2000];
-const photo = (name, { alt = '', sizes, base = '', attrs = '' }) => `<picture><source type="image/webp" srcset="${PHOTO_W.map(w => `${base}assets/img/${name}-${w}.webp ${w}w`).join(', ')}" sizes="${sizes}"><img src="${base}assets/img/${name}.jpg" alt="${esc(alt)}" width="2000" height="1500" decoding="async" ${attrs}></picture>`;
+const photo = (name, { alt = '', sizes, base = '', attrs = '', cls = '' }) => `<picture${cls ? ` class="${cls}" aria-hidden="true"` : ''}><source type="image/webp" srcset="${PHOTO_W.map(w => `${base}assets/img/${name}-${w}.webp ${w}w`).join(', ')}" sizes="${sizes}"><img src="${base}assets/img/${name}.jpg" alt="${esc(alt)}" width="2000" height="1500" decoding="async" ${attrs}></picture>`;
 
 // ───────────────────────────── shell ─────────────────────────────
 function head({ title, desc, base, canonical, jsonld }) {
@@ -161,6 +161,18 @@ export function renderIndex(products, ordered) {
   </div>
 </section>
 
+<section class="sec industries" id="industries" aria-labelledby="ind-title">
+  <div class="wrap">
+    <div class="sec-head" data-reveal>
+      <div><p class="eyebrow">Industries we serve</p><h2 class="h2" id="ind-title">Industries <em>Served</em></h2></div>
+      <p class="lede">${esc(industriesIntro.home)}</p>
+    </div>
+    <div class="ind-grid" data-spot>${industries.map((d, i) => `<a class="ind" href="industries.html#${d.slug}" data-reveal style="--i:${i % 4}"><span class="ind-n">${String(i + 1).padStart(2, '0')}</span><span class="ibox">${icon(d.icon)}</span><h3>${esc(d.name)}</h3><p>${esc(d.line)}</p><span class="ind-go">Explore application ${icon('arrow')}</span></a>`).join('')}
+      <div class="ind ind-cta" data-reveal style="--i:3"><span class="ind-n">${industries.length} industries</span><h3>Your formulation, <em>our chemistry.</em></h3><p>See how each industry uses our catalogue — or tell us your application directly.</p><div class="row"><a class="btn btn-dark sm" href="industries.html">View all industries ${icon('arrow')}</a><button class="btn btn-line sm" data-quote>Request a Quote</button></div></div>
+    </div>
+  </div>
+</section>
+
 <section class="sec" id="catalogue">
   <div class="wrap">
     <div class="sec-head" data-reveal>
@@ -176,7 +188,7 @@ export function renderIndex(products, ordered) {
   <div class="wrap">
     <div class="sec-head c" data-reveal><p class="eyebrow c nodash" style="letter-spacing:.24em">Manufacturing excellence</p><h2 class="h2">Inside Our <em>Facilities</em></h2></div>
     <div class="carousel" data-carousel data-reveal="scale" aria-roledescription="carousel" aria-label="Facilities">
-      <div class="slides" tabindex="0">${facilities.map((f, i) => `<figure class="slide photo" aria-roledescription="slide" aria-label="${i + 1} of ${facilities.length}" style="margin:0;--op:${f.pos};--op-m:${f.posM}">${photo(f.photo, { alt: f.alt, sizes: '(max-width: 760px) 167vw, (max-width: 1280px) 100vw, 1200px', attrs: `loading="${i ? 'lazy' : 'eager'}"` })}<figcaption class="cap"><h3>${esc(f.title)}</h3><p>${esc(f.text)}</p></figcaption></figure>`).join('')}</div>
+      <div class="slides" tabindex="0">${facilities.map((f, i) => `<figure class="slide photo" aria-roledescription="slide" aria-label="${i + 1} of ${facilities.length}" style="margin:0;--op:${f.pos};--op-m:${f.posM}">${[0, 1].map(k => photo(f.photo, { alt: k ? '' : f.alt, cls: k ? 'clr' : '', sizes: '(max-width: 760px) 167vw, (max-width: 1280px) 100vw, 1200px', attrs: `loading="${i ? 'lazy' : 'eager'}"` })).join('')}<figcaption class="cap"><h3>${esc(f.title)}</h3><p>${esc(f.text)}</p></figcaption></figure>`).join('')}</div>
       <button class="cbtn prev" data-prev aria-label="Previous slide">${icon('left')}</button><button class="cbtn next" data-next aria-label="Next slide">${icon('right')}</button>
       <div class="dots">${facilities.map((_, i) => `<button aria-label="Go to slide ${i + 1}"${i === 0 ? ' class="on"' : ''}></button>`).join('')}</div>
     </div>
@@ -220,6 +232,49 @@ export function renderIndex(products, ordered) {
 </section>
 </main>
 ` + footer(base, true) + modal(products) + scripts(base);
+}
+
+// ───────────────────────────── industries page ─────────────────────────────
+export function renderIndustries(products) {
+  const base = '';
+  const bySlug = Object.fromEntries(products.map(p => [p.slug, p]));
+  const pad = (i) => String(i + 1).padStart(2, '0');
+  const jsonld = { '@context': 'https://schema.org', '@type': 'CollectionPage', name: 'Industries Served — Alphapine & Aromatics', description: industriesIntro.page, url: `${site.url}/industries`, hasPart: industries.map(d => ({ '@type': 'WebPageElement', name: d.name, description: d.line, url: `${site.url}/industries#${d.slug}` })) };
+  return head({ title: 'Industries Served — Pharma, Perfumery, Flavour, Home Care & more | Alphapine & Aromatics', desc: industriesIntro.page, base, canonical: '/industries', jsonld }) + header(base, products, false) + `
+<main id="main">
+<section class="ind-hero">
+  <div class="wrap">
+    <nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Home</a><span aria-hidden="true">/</span><span aria-current="page">Industries Served</span></nav>
+    <p class="eyebrow fade-in" style="animation-delay:.05s">Applications · ${industries.length} industries</p>
+    <h1 class="ind-h1"><span class="w" style="--i:0">Industries</span> <span class="w" style="--i:1"><em>Served</em></span></h1>
+    <p class="lede fade-in">${esc(industriesIntro.page)}</p>
+    <div class="fade-in" style="animation-delay:.9s"><button class="btn btn-teal lg" data-quote>Request a Quote ${icon('arrow')}</button></div>
+    <nav class="ind-jump fade-in" style="animation-delay:1s" aria-label="Jump to an industry">${industries.map((d, i) => `<a href="#${d.slug}"><b>${pad(i)}</b>${esc(d.name)}</a>`).join('')}</nav>
+  </div>
+</section>
+
+<section class="sec ind-list">
+  <div class="wrap-n">${industries.map((d, i) => {
+    const prods = d.products.map(s => bySlug[s]).filter(Boolean);
+    return `<article class="ind-row" id="${d.slug}" data-reveal>
+      <div class="ind-row-h"><span class="ind-n">${pad(i)} / ${pad(industries.length - 1)}</span><span class="ibox">${icon(d.icon)}</span></div>
+      <div class="ind-row-b"><h2>${esc(d.name)}</h2><p class="ind-line">${esc(d.line)}</p><p>${esc(d.para)}</p>
+        ${prods.length ? `<div class="ind-prods"><small>From our catalogue</small><div class="chips">${prods.map(p => `<a class="chip" href="products/${p.slug}.html">${esc(p.name.replace(/\s*\(Natural Indian\)/, ''))}</a>`).join('')}</div></div>` : ''}
+        <button class="btn btn-rust sm" data-quote data-msg="Industry / application: ${esc(d.name)} — ">Request a Quote ${icon('arrow')}</button>
+      </div>
+    </article>`;
+  }).join('')}
+  </div>
+</section>
+
+<section class="ind-band">
+  <div class="wrap-n ind-band-in" data-reveal>
+    <div><p class="eyebrow">Direct procurement</p><h2 class="h2">Have an application <em>in mind?</em></h2><p class="lede">Share your industry, product and volume — we respond with pricing, availability and a batch CoA. MOQ from 25 kg.</p></div>
+    <button class="btn btn-teal lg" data-quote>Request a Quote ${icon('arrow')}</button>
+  </div>
+</section>
+</main>
+` + footer(base, false) + modal(products) + scripts(base);
 }
 
 // ───────────────────────────── PDP ─────────────────────────────
