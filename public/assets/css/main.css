@@ -242,6 +242,11 @@ sub{font-size:.62em;vertical-align:-.25em;line-height:0}
 .res small{display:block;color:rgba(255,255,255,.55);font-size:12.5px;line-height:1.5;margin:4px 0}
 .res em{font:normal 10.5px/1 var(--mono);color:var(--mint);letter-spacing:.06em}
 .res .dl{margin-left:auto;color:rgba(255,255,255,.5)}
+/* PDP: TDS / MSDS request section (reuses .contact / .form-card); info rows are not interactive */
+.docs{scroll-margin-top:72px}
+.res.doc-i,.res.doc-i:hover{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.07)}
+.field input[readonly]{color:#4a5752;cursor:default}
+.done [data-docs-fallback][hidden]{display:none}
 .form-card{background:#fff;color:#1b2522;border-radius:var(--r-lg);padding:clamp(22px,3.4vw,38px);box-shadow:0 40px 80px -40px rgba(0,0,0,.6)}
 .form-card h3{font:600 22px/1.25 var(--sans);margin:0 0 6px;letter-spacing:-.01em}
 .form-card .sub{margin:0 0 22px;color:#6a7570;font-size:14px}
@@ -289,6 +294,8 @@ sub{font-size:.62em;vertical-align:-.25em;line-height:0}
 /* ── footer ── */
 .foot{background:var(--forest-950);color:rgba(255,255,255,.72);padding:72px 0 28px}
 .f-top{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:40px}
+.f-logo{display:inline-block;margin:0 0 20px}.f-logo img{display:block;width:150px;height:auto}
+.f-addr{font-style:normal;font-size:13px;line-height:1.6;color:rgba(255,255,255,.6);max-width:30ch}
 .foot .f-brand{font:700 clamp(26px,2.6vw,32px)/1.1 var(--serif);color:#fff;margin:0 0 16px;letter-spacing:-.01em}
 .foot p{font-size:13px;line-height:1.7;max-width:40ch;margin:0}
 .socials{display:flex;gap:10px;margin-top:22px}
