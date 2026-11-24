@@ -1,0 +1,12 @@
+{
+  "name": "alphapine-aromatics-site",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Alphapine & Aromatics — landing page + product detail pages (static, Vercel-ready)",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "dev": "node scripts/build.mjs && npx --yes serve dist -l 4173"
+  },
+  "engines": { "node": ">=18" }
+}
