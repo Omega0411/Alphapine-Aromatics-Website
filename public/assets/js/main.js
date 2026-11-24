@@ -166,6 +166,22 @@
     });
   });
 
+  /* ── facility photos: B&W at rest, colour revealed on hover from the pointer's entry point ── */
+  $$('[data-carousel]').forEach(car => {
+    if (!$('.slide.photo', car)) return;
+    const at = (e) => { const r = car.getBoundingClientRect(); car.style.setProperty('--rx', `${((e.clientX - r.left) / r.width * 100).toFixed(1)}%`); car.style.setProperty('--ry', `${((e.clientY - r.top) / r.height * 100).toFixed(1)}%`); };
+    car.addEventListener('pointerenter', (e) => { if (e.pointerType !== 'mouse') return; at(e); car.classList.add('lit'); });
+    car.addEventListener('pointerleave', (e) => { if (e.pointerType !== 'mouse') return; at(e); car.classList.remove('lit'); });
+    // touch screens have no hover: reveal colour once the carousel is in view
+    if (matchMedia('(hover: none)').matches) new IntersectionObserver(([en]) => car.classList.toggle('lit', en.isIntersecting), { threshold: 0.6 }).observe(car);
+  });
+
+  /* ── industries cards: soft spotlight follows the pointer ── */
+  $$('[data-spot]').forEach(g => g.addEventListener('pointermove', (e) => {
+    const c = e.target.closest('.ind'); if (!c) return;
+    const r = c.getBoundingClientRect(); c.style.setProperty('--mx', `${e.clientX - r.left}px`); c.style.setProperty('--my', `${e.clientY - r.top}px`);
+  }, { passive: true }));
+
   /* ── year ── */
   $$('[data-year]').forEach(el => el.textContent = new Date().getFullYear());
 }

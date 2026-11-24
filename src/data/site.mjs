@@ -53,6 +53,61 @@ export const heritage = {
 
 export const catalogueIntro = 'Seven products manufactured at our fully automated GTO plant, commissioned in 2021. Nine quality-assured lines sourced from verified producers and re-tested in our in-house lab before dispatch. Every batch profiled. Every grade declared.';
 
+// Industries Served — homepage cards (name + one-line) and the dedicated /industries page (paragraph + products).
+// `products` are catalogue slugs whose listed applications (products.mjs → uses) cover that industry.
+// Empty where the catalogue lists no matching application — the page then shows only the quote CTA.
+export const industriesIntro = {
+  home: 'Our terpene derivatives, essential oils and aroma chemicals reach well beyond gum turpentine derivatives — into eleven industries, from pharmaceutical actives to agarbatti, paints and home care.',
+  page: 'Terpene derivatives, essential oils and aroma chemicals from Alphapine & Aromatics go into formulations across eleven industries. Every batch is tested in our in-house laboratory before dispatch — tell us your application and we will match the product and grade.',
+};
+
+export const industries = [
+  { slug: 'pharmaceuticals', name: 'Pharmaceuticals', icon: 'pill',
+    line: 'APIs, intermediates, excipients and aroma-chemical inputs for pharma applications.',
+    para: 'Our portfolio for pharma runs from menthol, eucalyptol, eucalyptus oil and camphor oil to Terpineol in a Medicinal Grade and Alpha Pinene as a pharma intermediate. Every batch is GC-MS profiled in our in-house laboratory, and a batch Certificate of Analysis can accompany your order.',
+    products: ['menthol', 'eucalyptol', 'eucalyptus-oil', 'camphor-oil', 'terpineol', 'alpha-pinene', 'l-carvone', 'eugenol'] },
+  { slug: 'nutraceuticals', name: 'Nutraceuticals', icon: 'leafdrop',
+    line: 'Ingredients and aroma / flavour inputs for nutraceutical and wellness formulations.',
+    para: 'Suitability depends on grade and your regulatory requirement — share the formulation and target specification, and our team will advise on the right product, grade and supporting documentation.',
+    products: [] },
+  { slug: 'soaps-detergents', name: 'Soaps & Detergents', icon: 'soap',
+    line: 'Fragrance and functional ingredients for bar soaps, liquid soaps, detergents and washing products.',
+    para: 'Pine Oil, Dipentine and Terpinyl Acetate are manufactured at our own plant; essential oils such as citronella, clove, eucalyptus and lemongrass are re-tested in-house before dispatch.',
+    products: ['pine-oil', 'dipentine', 'terpinyl-acetate', 'citronella-oil', 'clove-oil', 'eucalyptus-oil', 'lemongrass-oil', 'camphor-oil'] },
+  { slug: 'perfumery', name: 'Perfumery', icon: 'spray',
+    line: 'Fine fragrance, perfumery compounds and aroma chemicals for perfumes, attars and body care.',
+    para: 'Terpineol, Terpinyl Acetate and Alpha Pinene are used in fine perfumery, Longifolene in woody and amber accords and Eugenol in oriental and spice accords. Odour evaluation is part of every batch release.',
+    products: ['terpineol', 'terpinyl-acetate', 'alpha-pinene', 'longifolene', 'eugenol', 'citronella-oil', 'eucalyptol'] },
+  { slug: 'flavour', name: 'Flavour', icon: 'candy',
+    line: 'Flavour chemicals and ingredients for food, confectionery and related flavour applications.',
+    para: 'Terpineol is FEMA-listed as a flavouring agent; menthol and L-Carvone are supplied for confectionery and gum, with grade suitability confirmed against your specification.',
+    products: ['menthol', 'l-carvone', 'terpineol', 'terpinyl-acetate', 'eugenol', 'clove-oil', 'eucalyptol', 'lemongrass-oil'] },
+  { slug: 'beverages', name: 'Beverages', icon: 'cup',
+    line: 'Flavour and aroma inputs for beverages — alcoholic and non-alcoholic.',
+    para: 'Menthol, L-Carvone, lemongrass oil and clove oil are among the inputs we supply for beverage applications. Tell us the beverage application and the market it is for, and we will recommend a grade and share the batch CoA.',
+    products: ['menthol', 'l-carvone', 'lemongrass-oil', 'clove-oil'] },
+  { slug: 'incense', name: 'Incense', icon: 'incense',
+    line: 'Agarbatti, dhoop and incense — fragrance oils, aroma chemicals and incense raw materials.',
+    para: 'Camphor oil, long used in religious and ceremonial applications, is part of our quality-assured portfolio — share your fragrance profile and we will suggest the right inputs.',
+    products: ['camphor-oil'] },
+  { slug: 'mehendi', name: 'Mehendi', icon: 'hand',
+    line: 'Henna / Mehendi formulations — fragrance, oils and related aroma inputs.',
+    para: 'Share your formulation requirement and our team will recommend suitable products and grades from the catalogue.',
+    products: [] },
+  { slug: 'paints-coatings', name: 'Paints & Coatings', icon: 'brush',
+    line: 'Solvents, resins / intermediates and aroma-chemical inputs for paints, coatings and allied products.',
+    para: 'DD Turpentine Oil, Dipentine and Pine Oil — all manufactured at our GTO plant — serve as thinners, solvents and paint strippers, while Longifolene is used as a resin modifier.',
+    products: ['dd-turpentine-oil', 'dipentine', 'pine-oil', 'terpineol', 'longifolene'] },
+  { slug: 'home-care', name: 'Home Care', icon: 'home',
+    line: 'Home-care formulations — cleaners, air care, dish care and surface care.',
+    para: 'Pine Oil and Terpineol are used in cleaners and disinfectants, Terpinyl Acetate in household and air-care fragrance, and Dipentine in bio-based cleaning.',
+    products: ['pine-oil', 'terpineol', 'terpinyl-acetate', 'dipentine', 'lemongrass-oil'] },
+  { slug: 'industrial-cleaning', name: 'Industrial Cleaning', icon: 'bucket',
+    line: 'Industrial and institutional cleaning — degreasers, cleaners and functional chemicals.',
+    para: 'Dipentine is a bio-based industrial solvent, Pine Oil is used in cleaning and degreasing, and Alpha Pinene and eucalyptus oil serve as solvents in cleaning formulations.',
+    products: ['dipentine', 'pine-oil', 'alpha-pinene', 'eucalyptus-oil'] },
+];
+
 // Real plant photos: assets/img/<photo>-{800,1400,2000}.webp + <photo>.jpg fallback.
 // pos / posM = object-position on desktop (wide crop) / mobile (portrait crop).
 export const facilities = [

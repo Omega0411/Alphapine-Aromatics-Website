@@ -6,7 +6,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { products as localProducts, gridOrder } from '../src/data/products.mjs';
 import { site } from '../src/data/site.mjs';
-import { renderIndex, renderPDP } from '../src/templates.mjs';
+import { renderIndex, renderPDP, renderIndustries } from '../src/templates.mjs';
 import { sceneForest, scenePlant, sceneColumns, sceneReactor, sceneThermic, sceneLab } from '../src/lib/art.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -52,10 +52,11 @@ window.SITE = ${JSON.stringify({
 `);
 
 writeFileSync(join(out, 'index.html'), renderIndex(products, ordered));
+writeFileSync(join(out, 'industries.html'), renderIndustries(products));
 for (const p of products) writeFileSync(join(out, 'products', `${p.slug}.html`), renderPDP(p, products));
 
 // sitemap + robots
-const urls = ['/', ...products.map(p => `/products/${p.slug}`)];
+const urls = ['/', '/industries', ...products.map(p => `/products/${p.slug}`)];
 writeFileSync(join(out, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.map(u => `<url><loc>${site.url}${u}</loc></url>`).join('')}</urlset>\n`);
 writeFileSync(join(out, 'robots.txt'), `User-agent: *\nAllow: /\nSitemap: ${site.url}/sitemap.xml\n`);
 
