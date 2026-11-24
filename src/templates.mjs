@@ -8,6 +8,10 @@ const CAT = { mfg: 'Manufactured', qa: 'Quality Assured' };
 // keep Greek letters lower-case inside uppercase mono labels (α must not become Α)
 const up = (s) => esc(s).replace(/([α-ωΔ]+)/g, '<span class="nt">$1</span>');
 const years = () => new Date().getFullYear() - site.founded;
+// Cache-busting: /assets/* is cached for 7 days (vercel.json), so CSS/JS URLs carry a content hash set by the build.
+const V = {};
+export const setAssetVersions = (v) => Object.assign(V, v);
+const ver = (k) => (V[k] ? `?v=${V[k]}` : '');
 // Responsive plant photo: WebP at 800/1400/2000w with a full-res JPEG fallback (files in public/assets/img/).
 const PHOTO_W = [800, 1400, 2000];
 const photo = (name, { alt = '', sizes, base = '', attrs = '', cls = '' }) => `<picture${cls ? ` class="${cls}" aria-hidden="true"` : ''}><source type="image/webp" srcset="${PHOTO_W.map(w => `${base}assets/img/${name}-${w}.webp ${w}w`).join(', ')}" sizes="${sizes}"><img src="${base}assets/img/${name}.jpg" alt="${esc(alt)}" width="2000" height="1500" decoding="async" ${attrs}></picture>`;
@@ -27,8 +31,8 @@ function head({ title, desc, base, canonical, jsonld }) {
 <link rel="icon" href="${base}assets/img/favicon.svg" type="image/svg+xml">
 <link rel="preload" href="${base}assets/fonts/playfair-display-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="${base}assets/fonts/inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="${base}assets/css/fonts.css">
-<link rel="stylesheet" href="${base}assets/css/main.css">
+<link rel="stylesheet" href="${base}assets/css/fonts.css${ver('fonts')}">
+<link rel="stylesheet" href="${base}assets/css/main.css${ver('css')}">
 ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld)}</script>` : ''}
 </head>
 <body>`;
@@ -110,7 +114,7 @@ function modal(products) {
 }
 
 function scripts(base) {
-  return `<script src="${base}assets/js/config.js"></script><script src="${base}assets/js/main.js" defer></script></body></html>`;
+  return `<script src="${base}assets/js/config.js${ver('config')}"></script><script src="${base}assets/js/main.js${ver('js')}" defer></script></body></html>`;
 }
 
 // ───────────────────────────── product card ─────────────────────────────
