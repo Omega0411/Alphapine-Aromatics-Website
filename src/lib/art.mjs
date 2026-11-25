@@ -67,6 +67,9 @@ const I = {
   ig: '<rect x="4" y="4" width="16" height="16" rx="4.5"/><circle cx="12" cy="12" r="3.6"/><path d="M16.8 7.2v.01"/>',
   yt: '<rect x="3" y="6" width="18" height="12" rx="3.5"/><path d="M10.5 9.5l4.2 2.5-4.2 2.5z"/>',
 };
+// icon names, offered as choices in the CMS admin
+export const ICON_NAMES = Object.keys(I);
+
 export function icon(name, cls = '', sw = 1.6) {
   return `<svg class="ic ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[name] || I.flask}</svg>`;
 }
