@@ -265,29 +265,52 @@
   }
 
   /* ── landing hero: crossfading plant photos ──
-     Slides after the first carry data-src/data-srcset and load after the page, one ahead of the slide shown.
-     Pauses while the hero is off-screen or the tab is hidden; reduced motion → starts paused (dots still work). */
+     The first photo loads with the page; the others load after it, one ahead of the slide shown.
+     Runs while the hero is on screen and the tab is visible; the pause button stops it. The progress bar
+     (CSS animation) is kept in step with the timer. Reduced motion: still advances, with a fade and no zoom. */
   const slides = $$('.hero-bg .hs');
   if (slides.length > 1) {
-    const ctrl = $('.hero-ctrl'), dots = $$('.hs-dot', ctrl), pauseBtn = $('.hs-pause', ctrl);
-    let cur = 0, paused = reduce, onScreen = true, timer = null;
+    const DUR = 5500;
+    const hero = $('.hero'), ctrl = $('.hero-ctrl'), segs = $$('.hs-seg', ctrl), pauseBtn = $('.hs-pause', ctrl);
+    const capN = $('.hs-cap b', ctrl), capT = $('.hs-cap em', ctrl);
+    ctrl.style.setProperty('--hs-dur', `${DUR}ms`);
+    let cur = 0, paused = false, onScreen = true, timer = null, left = DUR, startedAt = 0, waiting = false;
+    const running = () => !paused && onScreen && !document.hidden;
     const hydrate = (pic) => { if (pic.dataset.ready) return; pic.dataset.ready = '1'; $$('source[data-srcset]', pic).forEach(s => { s.srcset = s.dataset.srcset; }); const img = $('img', pic); if (img.dataset.src) img.src = img.dataset.src; };
-    const loaded = (pic) => { const img = $('img', pic); return pic.dataset.ready && img.complete && img.naturalWidth > 0; };
-    const show = (n) => {
+    const loaded = (pic) => { const img = $('img', pic); return !!pic.dataset.ready && img.complete && img.naturalWidth > 0; };
+    const stop = () => { if (timer) { clearTimeout(timer); timer = null; left = Math.max(0, left - (performance.now() - startedAt)); } };
+    const arm = () => { if (timer || waiting || !running()) return; startedAt = performance.now(); timer = setTimeout(() => { timer = null; advance(cur + 1); }, left); };
+    const sync = () => { ctrl.classList.toggle('paused', !running()); running() ? arm() : stop(); };
+    function show(n) {
       const next = (n + slides.length) % slides.length;
-      if (next === cur) return;
-      slides[cur].classList.remove('on'); slides[next].classList.add('on'); cur = next;
-      dots.forEach((d, k) => { d.classList.toggle('on', k === cur); if (k === cur) d.setAttribute('aria-current', 'true'); else d.removeAttribute('aria-current'); });
+      if (next !== cur) {
+        const prev = slides[cur];
+        prev.classList.remove('on'); prev.classList.add('out');
+        setTimeout(() => prev.classList.remove('out'), 1600);
+        slides[next].classList.add('on'); cur = next;
+      }
+      segs.forEach((g, k) => { g.classList.remove('on'); if (k === cur) { void g.offsetWidth; g.classList.add('on'); g.setAttribute('aria-current', 'true'); } else g.removeAttribute('aria-current'); });
+      capN.textContent = String(cur + 1).padStart(2, '0'); capT.textContent = slides[cur].dataset.label || '';
       hydrate(slides[(cur + 1) % slides.length]);
-    };
-    const go = (n) => { const pic = slides[(n + slides.length) % slides.length]; hydrate(pic); if (loaded(pic)) show(n); else $('img', pic).addEventListener('load', () => show(n), { once: true }); };
-    const restart = () => { clearInterval(timer); timer = setInterval(() => { if (!paused && onScreen && !document.hidden && loaded(slides[(cur + 1) % slides.length])) show(cur + 1); }, 6500); };
-    const setPaused = (p) => { paused = p; pauseBtn.setAttribute('aria-pressed', String(p)); pauseBtn.setAttribute('aria-label', p ? 'Play background slideshow' : 'Pause background slideshow'); };
-    pauseBtn.addEventListener('click', () => setPaused(!paused));
-    dots.forEach((d, k) => d.addEventListener('click', () => { go(k); restart(); }));
-    if ('IntersectionObserver' in window) new IntersectionObserver(([en]) => { onScreen = en.isIntersecting; }).observe($('.hero'));
-    const start = () => { setPaused(paused); ctrl.hidden = false; hydrate(slides[1]); restart(); };
-    if (document.readyState === 'complete') start(); else addEventListener('load', start, { once: true });
+      left = DUR; stop(); left = DUR; sync();
+    }
+    function advance(n) {
+      const pic = slides[(n + slides.length) % slides.length];
+      hydrate(pic);
+      if (loaded(pic)) return show(n);
+      waiting = true; ctrl.classList.add('paused');
+      const img = $('img', pic);
+      const done = () => { waiting = false; show(n); };
+      img.addEventListener('load', done, { once: true }); img.addEventListener('error', () => { waiting = false; show(n + 1); }, { once: true });
+    }
+    pauseBtn.addEventListener('click', () => { paused = !paused; pauseBtn.setAttribute('aria-pressed', String(paused)); pauseBtn.setAttribute('aria-label', paused ? 'Play background slideshow' : 'Pause background slideshow'); sync(); });
+    segs.forEach((g, k) => g.addEventListener('click', () => { stop(); advance(k); }));
+    document.addEventListener('visibilitychange', sync);
+    if ('IntersectionObserver' in window) new IntersectionObserver(([en]) => { onScreen = en.isIntersecting; sync(); }).observe(hero);
+    ctrl.hidden = false;
+    show(0);
+    // fetch the second photo once the page itself has finished loading
+    if (document.readyState === 'complete') hydrate(slides[1]); else addEventListener('load', () => hydrate(slides[1]), { once: true });
   }
 
   /* ── year ── */
