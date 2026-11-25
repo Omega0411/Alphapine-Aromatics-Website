@@ -57,6 +57,7 @@
     S.open = open; save();
     panel.hidden = !open; launcher.setAttribute('aria-expanded', String(open));
     root.classList.toggle('is-open', open);
+    document.documentElement.classList.toggle('chat-open', open);   // product pages hide the enquiry dock
     if (!open) { if (!quiet) launcher.focus(); return; }
     if (!D) await loadData();
     if (!S.log.length) { go('start'); save(); }

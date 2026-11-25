@@ -71,7 +71,7 @@ function footer(base, isHome) {
   <div class="wrap">
     <div class="f-top">
       <div>
-        <a class="f-logo" href="${base}index.html" aria-label="Alphapine &amp; Aromatics — home"><img src="${base}assets/img/logo-dark-footer.png" alt="Alphapine &amp; Aromatics Pvt. Ltd." width="150" height="116" loading="lazy"></a>
+        <a class="f-logo" href="${base}index.html" aria-label="Alphapine &amp; Aromatics — home"><img src="${base}assets/img/logo-footer.png" alt="Alphapine &amp; Aromatics Pvt. Ltd." width="150" height="118" loading="lazy"></a>
         <p>Formerly New Jolly Oil Company. Established ${site.founded}. Manufacturing since ${site.plantYear}. Sixteen product lines across aroma chemicals, essential oils and terpene derivatives — verified batch by batch.</p>
         <div class="socials">${site.social.map(([n, h, i]) => `<a ${h === 'wa' ? 'data-wa="Hello Alphapine team, I have an enquiry." href="#"' : `href="${h}"`} aria-label="${n}" target="_blank" rel="noopener">${icon(i)}</a>`).join('')}</div>
       </div>
@@ -103,8 +103,8 @@ function doneBlock() {
   return `<div class="done" aria-live="polite"><div class="tick">${icon('check')}</div><h4>Your enquiry is ready to send.</h4><p data-done-text>Choose how you'd like to send it — our team will reply with a quote, datasheet or CoA.</p><div class="row"><a class="btn btn-wa" data-done-wa href="#" target="_blank" rel="noopener">${icon('wa')} Send via WhatsApp</a><a class="btn btn-out" data-done-mail href="#">${icon('mail')} Send via Email</a><a class="btn btn-out" data-done-dl href="#" target="_blank" rel="noopener" hidden>${icon('download')} Download catalogue</a></div><p class="note">Online submission connects once the CMS endpoint is configured (assets/js/config.js).</p></div>`;
 }
 
-function modal(products) {
-  return `<div class="modal" id="quote" role="dialog" aria-modal="true" aria-labelledby="q-title">
+function modal(products, { side = false } = {}) {
+  return `<div class="modal${side ? ' side' : ''}" id="quote" role="dialog" aria-modal="true" aria-labelledby="q-title">
   <div class="form-card">
     <button class="x" data-close aria-label="Close">${icon('close')}</button>
     <span class="ctx" data-ctx>Direct procurement</span>
@@ -465,5 +465,9 @@ export function renderPDP(p, products) {
   </div>
 </section>
 </main>
-` + footer(base, false) + modal(products) + scripts(base);
+<aside class="pdp-dock" aria-label="Quick enquiry — ${esc(p.name)}">
+  <button class="dock-btn primary" ${quoteAttrs} aria-label="Request a quote for ${esc(p.name)}">${icon('file')}<span class="full">Request a Quote</span><span class="short" aria-hidden="true">Quote</span></button>
+  <button class="dock-btn" ${quoteAttrs} data-type="Sample request" aria-label="Request a sample of ${esc(p.name)}">${icon('sample')}<span class="full">Request a Sample</span><span class="short" aria-hidden="true">Sample</span></button>
+</aside>
+` + footer(base, false) + modal(products, { side: true }) + scripts(base);
 }

@@ -256,6 +256,14 @@
     });
   }
 
+  /* ── product pages: quick-enquiry dock — hidden while the product header (it has its own quote buttons), the TDS form or the footer is on screen ── */
+  const dock = $('.pdp-dock');
+  if (dock && 'IntersectionObserver' in window) {
+    const seen = new Set();
+    const io = new IntersectionObserver((es) => { es.forEach(en => en.isIntersecting ? seen.add(en.target) : seen.delete(en.target)); dock.classList.toggle('hide', seen.size > 0); }, { threshold: 0, rootMargin: '-90px 0px 0px 0px' });   // ignore the strip under the sticky nav
+    ['.pdp-hero', '#tds-msds .form-card', '.foot'].forEach(s => { const n = $(s); n && io.observe(n); });
+  }
+
   /* ── year ── */
   $$('[data-year]').forEach(el => el.textContent = new Date().getFullYear());
 }
