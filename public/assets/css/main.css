@@ -98,27 +98,39 @@ sub{font-size:.62em;vertical-align:-.25em;line-height:0}
 
 /* ── hero ── */
 .hero{position:relative;min-height:min(86vh,800px);display:flex;align-items:center;color:#fff;overflow:hidden;background:#173a31}
-.hero-bg{position:absolute;inset:0}
+.hero-bg{position:absolute;inset:0;z-index:0}
 .hero-bg img{width:100%;height:100%;object-fit:cover;animation:kb 26s var(--ease) infinite alternate}
 @keyframes kb{from{transform:scale(1.04)}to{transform:scale(1.12) translate(-1.5%,-1%)}}
-/* hero slideshow: stacked photos crossfade; only the visible one runs the slow zoom */
-.hero-bg .hs{position:absolute;inset:0;display:block;opacity:0;transition:opacity 1.8s ease}
-.hero-bg .hs.on{opacity:1}
-.hero-bg .hs img{object-position:var(--op,50% 50%)}
-.hero-bg .hs:not(.on) img{animation-play-state:paused}
+/* hero slideshow: stacked plant photos crossfade; each slide gets a fresh slow zoom (alternating in / out) */
+.hero-bg .hs{position:absolute;inset:0;display:block;opacity:0;transition:opacity 1.5s ease}
+.hero-bg .hs.on{opacity:1;z-index:1}
+.hero-bg .hs img{object-position:var(--op,50% 50%);animation:none;transform:scale(1.04)}
+.hero-bg .hs.on img,.hero-bg .hs.out img{animation:hsIn 7.5s cubic-bezier(.25,.6,.3,1) forwards}
+.hero-bg .hs:nth-child(even).on img,.hero-bg .hs:nth-child(even).out img{animation-name:hsOut}
+@keyframes hsIn{from{transform:scale(1.03) translate(0,0)}to{transform:scale(1.15) translate(-2%,-1.2%)}}
+@keyframes hsOut{from{transform:scale(1.15) translate(-1.5%,0)}to{transform:scale(1.03) translate(0,-1%)}}
 @media (max-width:760px){.hero-bg .hs img{object-position:var(--op-m,var(--op,50% 50%))}}
-.hero-ctrl{position:absolute;left:0;bottom:30px;display:flex;align-items:center;gap:8px}
+/* controls: pause + progress segments + caption, under the hero buttons */
+.hero-ctrl{position:absolute;left:0;bottom:30px;display:flex;align-items:center;gap:14px}
 .hero-ctrl[hidden]{display:none}
-.hs-dot{width:8px;height:8px;border-radius:99px;background:rgba(255,255,255,.4);padding:0;transition:width .35s var(--ease),background .35s}
-.hs-dot::before{content:"";display:block;width:24px;height:24px;margin:-8px}
-.hs-dot:hover{background:rgba(255,255,255,.75)}
-.hs-dot.on{width:28px;background:var(--mint)}
-.hs-pause{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.06);margin-right:6px}
+.hs-pause{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;border:1px solid rgba(255,255,255,.32);background:rgba(255,255,255,.06);backdrop-filter:blur(4px);flex:none}
 .hs-pause:hover{background:rgba(255,255,255,.16)}
 .hs-pause .i-pause{width:8px;height:10px;border-left:2.5px solid #fff;border-right:2.5px solid #fff}
 .hs-pause[aria-pressed=true] .i-pause{width:0;height:0;border-style:solid;border-width:6px 0 6px 10px;border-color:transparent transparent transparent #fff;margin-left:3px}
-@media (max-width:760px){.hero-ctrl{bottom:22px}}
-.hero-ov{position:absolute;inset:0;background:linear-gradient(90deg,rgba(6,40,34,.92) 0%,rgba(8,46,40,.84) 38%,rgba(10,52,44,.55) 66%,rgba(10,52,44,.32) 100%),linear-gradient(0deg,rgba(6,34,30,.55),transparent 40%)}
+.hs-segs{display:flex;gap:6px}
+.hs-seg{position:relative;width:38px;height:3px;border-radius:3px;background:rgba(255,255,255,.28);padding:0;overflow:visible}
+.hs-seg::before{content:"";position:absolute;left:0;right:0;top:-10px;bottom:-10px}
+.hs-seg i{position:absolute;inset:0;border-radius:3px;background:var(--mint);transform:scaleX(0);transform-origin:left}
+.hs-seg.on i{animation:hsFill var(--hs-dur,5500ms) linear forwards}
+.hero-ctrl.paused .hs-seg.on i{animation-play-state:paused}
+@keyframes hsFill{to{transform:scaleX(1)}}
+.hero-ctrl .hs-cap{margin:0;max-width:none;display:flex;align-items:baseline;gap:8px;font:500 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.72);white-space:nowrap}
+.hero-ctrl .hs-cap b{font-weight:600;color:#fff}.hero-ctrl .hs-cap span{color:rgba(255,255,255,.45)}
+.hero-ctrl .hs-cap em{font-style:normal;margin-left:6px;padding-left:12px;border-left:1px solid rgba(255,255,255,.25);transition:opacity .4s}
+@media (max-width:760px){.hero-ctrl{bottom:22px;gap:12px}.hs-seg{width:26px}.hero-ctrl .hs-cap em{display:none}}
+/* overlay: deep on the text side, lighter over the photos so the plant shows through */
+.hero-ov{position:absolute;inset:0;background:linear-gradient(90deg,rgba(6,40,34,.9) 0%,rgba(8,46,40,.8) 34%,rgba(10,52,44,.42) 62%,rgba(10,52,44,.14) 100%),linear-gradient(0deg,rgba(6,34,30,.6),transparent 38%)}
+@media (max-width:760px){.hero-ov{background:linear-gradient(0deg,rgba(6,34,30,.9) 0%,rgba(6,40,34,.74) 45%,rgba(6,40,34,.62) 100%)}}
 .hero-in{position:relative;padding:96px 0 110px}
 .pill-glass{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:999px;background:rgba(85,220,198,.1);border:1px solid rgba(85,220,198,.25);color:var(--mint);font-size:13px;letter-spacing:.01em}
 .hero h1{font-family:var(--serif);font-weight:600;font-size:clamp(42px,5.4vw,78px);line-height:1.06;letter-spacing:-.02em;margin:26px 0 24px}
@@ -692,3 +704,5 @@ sub{font-size:.62em;vertical-align:-.25em;line-height:0}
   .ind-row-h{flex-direction:row-reverse;justify-content:flex-end;align-items:center}
 }
 @media (prefers-reduced-motion:reduce){.ind-h1 .w{opacity:1;transform:none}}
+/* reduced motion: hero photos still change, with a soft fade only (no zoom, no moving progress bar) */
+@media (prefers-reduced-motion:reduce){.hero-bg .hs{transition:opacity 1.2s ease!important}.hs-seg.on i{transform:scaleX(1)}}

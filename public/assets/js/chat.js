@@ -1,7 +1,8 @@
 /* Alphapine site assistant — a guided, rule-based chat (no AI service).
    Answers come only from the site's own content (assets/data/chat.json, generated at build time),
    and anything it cannot resolve is handed to the team on WhatsApp with the context pre-filled.
-   Flow: 1 topic → 2 product type / question / section → 3 product detail or "did that help?" → 4 WhatsApp.
+   Flow: greeting → name → contact (both skippable) → 1 topic → 2 product type / question / section
+         → 3 product detail or "did that help?" → 4 WhatsApp, with the 30–60 minute response promise.
    The conversation persists across pages for the browser session. All content is rendered as text. */
 (() => {
   'use strict';
@@ -11,6 +12,8 @@
   const load = () => { try { return JSON.parse(sessionStorage.getItem(KEY) || 'null'); } catch { return null; } };
   const save = () => { try { sessionStorage.setItem(KEY, JSON.stringify(S)); } catch { /* storage unavailable */ } };
   let S = load() || { open: false, log: [], ctx: {} };
+  S.profile = S.profile || {};   // { name, contact, asked } — kept for the browser session, survives "Start over"
+  S.followed = S.followed || [];  // hand-offs already followed up after the WhatsApp tap
   let D = null; // chat.json
 
   /* ───────────── DOM helpers ───────────── */
@@ -73,7 +76,7 @@
       D = { contact: { whatsapp: SITE.whatsapp, email: SITE.email }, products: [], faqs: [], sections: [], industries: [], categories: [], quality: { lab: [], cards: [] } };
     }
   }
-  function restart() { S.log = []; S.ctx = {}; go('start'); save(); render(); input.focus(); }
+  function restart() { S.log = []; S.ctx = {}; S.followed = []; go('start'); save(); render(); input.focus(); }
 
   /* ───────────── messages ───────────── */
   // A bot message is data: { text, list, card, links:[{label,href,dl,wa,quote,type}], opts:[{label,go,arg}] }
@@ -97,7 +100,7 @@
     if (l.quote) return el('button', { type: 'button', class: 'chat-link', 'data-quote': '', 'data-product': l.product || null, 'data-type': l.type || null, onclick: () => { if (matchMedia('(max-width: 640px)').matches) setOpen(false, true); } }, l.label);
     const a = el('a', { class: `chat-link${l.wa ? ' wa' : ''}`, href: l.wa ? waHref() : url(l.href), target: l.wa ? '_blank' : null, rel: l.wa ? 'noopener' : null, download: l.dl || null }, l.wa ? svg('wa') : null, l.label);
     a.addEventListener('click', () => {
-      if (l.wa) a.href = waHref();   // always send the latest context
+      if (l.wa) { a.href = waHref(); setTimeout(() => followUp(l.h), 400); }   // always send the latest context
       // on a phone the open chat covers the page: close it so the destination is visible
       if (!l.wa && !l.dl && matchMedia('(max-width: 640px)').matches) setOpen(false, true);
     });
@@ -117,17 +120,29 @@
 
   /* ───────────── WhatsApp hand-off (stage 4) ───────────── */
   function waHref() {
-    const c = S.ctx, lines = ['Hello Alphapine team, I have a query from your website.'];
+    const c = S.ctx, pr = S.profile, lines = ['Hello Alphapine team, I have a query from your website.'];
+    if (pr.name) lines.push(`Name: ${pr.name}`);
+    if (pr.contact) lines.push(`Contact: ${pr.contact}`);
     if (c.topic) lines.push(`Topic: ${c.topic}`);
     if (c.product) lines.push(`Product: ${c.product}`);
     if (c.query) lines.push(`My question: ${c.query}`);
     lines.push(`Page: ${location.href.split('#')[0]}`);
     return `https://wa.me/${(D && D.contact.whatsapp) || SITE.whatsapp || ''}?text=${encodeURIComponent(lines.join('\n'))}`;
   }
+  const PROMISE = 'We will respond within 30 to 60 minutes.';
+  const TIMEZONE = 'If you are reaching us from a different time zone, we shall be able to respond accordingly.';
   function handoff(text) {
-    const c = D.contact;
-    say({ text: `${text || 'Our team will help you directly.'}\nWhatsApp: ${c.phone || ''}${c.email ? `\nEmail: ${c.email}` : ''}`,
-      links: [{ label: 'Chat on WhatsApp', wa: true }], opts: [{ label: 'Back to main menu', go: 'start' }] });
+    const c = D.contact, h = Date.now();
+    say({ text: `${text || 'Our team will help you directly.'}\nWhatsApp: ${c.phone || ''}${c.email ? `\nEmail: ${c.email}` : ''}\n${PROMISE}\n${TIMEZONE}`,
+      links: [{ label: 'Chat on WhatsApp', wa: true, h }], opts: [{ label: 'Back to main menu', go: 'start' }] });
+  }
+  // after the visitor taps "Chat on WhatsApp": confirm the response time (once per hand-off)
+  function followUp(h) {
+    if (!h || S.followed.includes(h)) return;
+    S.followed.push(h);
+    const n = S.profile.name;
+    say({ text: `Thank you${n ? `, ${n}` : ''}. Once you drop your query on our WhatsApp number, our team will respond within 30 to 60 minutes.\n${TIMEZONE}`, opts: [{ label: 'Back to main menu', go: 'start' }] });
+    save(); render();
   }
   const helped = (extra = []) => [...extra, { label: 'Yes, that helps', go: 'done' }, { label: 'No — talk to the team', go: 'wa' }];
 
@@ -142,14 +157,25 @@
       // ── stage 1
       case 'start':
         S.ctx = {};
-        say({ text: (fromUser ? '' : 'Hello! I\'m the Alphapine assistant.\n') + 'What can I help you with?', opts: [
-          { label: 'Products', go: 'products' },
-          { label: 'Quality & certifications', go: 'quality' },
-          { label: 'Website help / about Alphapine', go: 'general' },
-          { label: 'My query isn\'t listed', go: 'other' }] });
+        if (!S.profile.asked) return go('intro');
+        say({ text: (!fromUser && S.profile.name ? `Welcome back, ${S.profile.name}.\n` : '') + 'What can I help you with?', opts: MENU() });
+        break;
+      // ── greeting: name, then contact (both can be skipped)
+      case 'intro':
+        S.ctx.awaiting = 'name';
+        say({ text: 'Hi, may I know your name?', opts: [{ label: 'Skip', go: 'skip-name' }] });
+        break;
+      case 'skip-name': return go('ask-contact');
+      case 'ask-contact':
+        S.ctx.awaiting = 'contact';
+        say({ text: 'Could you share your phone / WhatsApp number or email, so our team can follow up with you?', opts: [{ label: 'Skip', go: 'skip-contact' }] });
+        break;
+      case 'skip-contact':
+        S.profile.asked = true;
+        say({ text: 'No problem.\nWhat can I help you with?', opts: MENU() });
         break;
       case 'done':
-        say({ text: 'Glad that helped. Anything else?', opts: [{ label: 'Products', go: 'products' }, { label: 'Quality & certifications', go: 'quality' }, { label: 'Website help', go: 'general' }, { label: 'My query isn\'t listed', go: 'other' }] });
+        say({ text: 'Glad that helped. Anything else?', opts: MENU() });
         break;
       case 'wa': handoff('No problem — our team will take it from here.'); break;
 
@@ -273,6 +299,31 @@
       default: go('start');
     }
   }
+  function MENU() {
+    return [
+      { label: 'Products', go: 'products' },
+      { label: 'Quality & certifications', go: 'quality' },
+      { label: 'Website help / about Alphapine', go: 'general' },
+      { label: 'My query isn\'t listed', go: 'other' }];
+  }
+  // "my name is Asha" / "Asha Verma" → "Asha Verma"; anything that reads like a question is not a name
+  function asName(t) {
+    const v = t.trim().replace(/^(hi|hello|hey)[,!.\s]+/i, '').replace(/^(my name is|my name's|name is|i am|i'm|im|this is|it's|its)\s+/i, '').replace(/[.!]+$/, '').trim();
+    if (!v || v.length > 40 || /[0-9?@:/]/.test(v)) return null;
+    const words = v.split(/\s+/);
+    if (words.length > 4 || !words.every(w => /^[\p{L}][\p{L}.'’-]*$/u.test(w))) return null;
+    if (words.some(w => STOP.has(w.toLowerCase()) && words.length > 1)) return null;
+    if (/\b(price|quote|quotation|sample|tds|msds|sds|datasheet|brochure|catalogue|catalog|whatsapp|order|buy)\b/i.test(v)) return null;
+    if (search(v).products.length) return null;   // a product name, not a person
+    return words.map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  }
+  function asContact(t) {
+    const v = t.trim();
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) return v;
+    const digits = v.replace(/\D/g, '');
+    if (/^[+()\d\s.-]+$/.test(v) && digits.length >= 8 && digits.length <= 15) return v;
+    return null;
+  }
   function productOpts(p) {
     return [
       { label: 'Grades & purity', go: 'p-grades', arg: p.slug },
@@ -312,6 +363,17 @@
     const mode = S.ctx.awaiting;
     S.ctx.awaiting = null;
     const t = norm(text);
+    if (mode === 'name') {
+      const n = asName(text);
+      if (n) { S.profile.name = n; say({ text: `Thanks for confirming, ${n}.` }); return go('ask-contact'); }
+      S.profile.asked = true;   // they asked a question instead: answer it and skip the greeting
+    }
+    if (mode === 'contact') {
+      const c = asContact(text);
+      if (c) { S.profile.contact = c; S.profile.asked = true; say({ text: 'Thank you — noted.\nWhat can I help you with?', opts: MENU() }); return; }
+      if (toks(text).length < 3) { S.ctx.awaiting = 'contact'; say({ text: 'That doesn\'t look like a phone number or email. Please try again, or skip.', opts: [{ label: 'Skip', go: 'skip-contact' }] }); return; }
+      S.profile.asked = true;   // a question instead of a contact: answer it
+    }
     // a question about the product being viewed: the team answers it (stage 4)
     if (mode === 'product-question') { S.ctx.query = text; handoff(`Thanks — our technical team will answer your question about ${S.ctx.product} directly.`); return; }
     if (mode === 'free') S.ctx.query = text;

@@ -148,13 +148,13 @@ export function renderIndex(products, ordered) {
   return head({ title: 'Alphapine & Aromatics — Terpene Derivatives, Essential Oils & Aroma Chemicals', desc: hero.body, base, canonical: '/', jsonld }) + header(base, products, true) + `
 <main id="main">
 <section class="hero" aria-label="Introduction">
-  <div class="hero-bg" aria-hidden="true">${hero.slides.map((s, i) => { const set = PHOTO_W.map(w => `assets/img/${s.photo}-${w}.webp ${w}w`).join(', '), lazy = i ? 'data-' : ''; return `<picture class="hs${i ? '' : ' on'}" style="--op:${s.pos};--op-m:${s.posM}"><source type="image/webp" ${lazy}srcset="${set}" sizes="(max-width: 760px) 250vw, 100vw"><img ${lazy}src="assets/img/${s.photo}.jpg" alt="" width="2000" height="1500" decoding="async"${i ? '' : ' fetchpriority="high"'}></picture>`; }).join('')}</div>
+  <div class="hero-bg" aria-hidden="true">${hero.slides.map((s, i) => { const set = PHOTO_W.map(w => `assets/img/${s.photo}-${w}.webp ${w}w`).join(', '), lazy = i ? 'data-' : ''; return `<picture class="hs${i ? '' : ' on'}" style="--op:${s.pos};--op-m:${s.posM}" data-label="${esc(s.label)}"><source type="image/webp" ${lazy}srcset="${set}" sizes="(max-width: 760px) 250vw, 100vw"><img ${lazy}src="assets/img/${s.photo}.jpg" alt="" width="2000" height="1500" decoding="async"${i ? '' : ' fetchpriority="high"'}></picture>`; }).join('')}</div>
   <div class="hero-ov"></div>
   <div class="wrap hero-in">
     <span class="pill-glass fade-in" style="animation-delay:.05s">${esc(hero.pill)}</span>
     <h1>${h1.map(w => w === '<br>' ? '<br>' : `<span class="w" style="--i:${wi++}">${w}</span> `).join('')}</h1>
     <p class="fade-in">${esc(hero.body)}</p>
-    <div class="hero-ctrl" hidden><button class="hs-pause" type="button" aria-pressed="false" aria-label="Pause background slideshow"><span class="i-pause" aria-hidden="true"></span></button>${hero.slides.map((_, i) => `<button class="hs-dot${i ? '' : ' on'}" type="button" aria-label="Show plant photo ${i + 1} of ${hero.slides.length}"${i ? '' : ' aria-current="true"'}></button>`).join('')}</div>
+    <div class="hero-ctrl" hidden><button class="hs-pause" type="button" aria-pressed="false" aria-label="Pause background slideshow"><span class="i-pause" aria-hidden="true"></span></button><div class="hs-segs">${hero.slides.map((s, i) => `<button class="hs-seg${i ? '' : ' on'}" type="button" aria-label="Show ${esc(s.label)} (photo ${i + 1} of ${hero.slides.length})"${i ? '' : ' aria-current="true"'}><i></i></button>`).join('')}</div><p class="hs-cap"><b>01</b><span>/ ${String(hero.slides.length).padStart(2, '0')}</span><em>${esc(hero.slides[0].label)}</em></p></div>
     <div class="hero-ctas fade-in" style="animation-delay:.9s"><a class="btn btn-teal lg" href="#catalogue">Explore Products ${icon('arrow')}</a><button class="btn btn-ghost lg" data-quote>Request a Quote</button><a class="btn btn-ghost lg" href="${hero.brochure.file}" download="${hero.brochure.name}" type="application/pdf">Download Brochure ${icon('download')}</a></div>
   </div>
 </section>
