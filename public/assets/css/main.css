@@ -101,6 +101,23 @@ sub{font-size:.62em;vertical-align:-.25em;line-height:0}
 .hero-bg{position:absolute;inset:0}
 .hero-bg img{width:100%;height:100%;object-fit:cover;animation:kb 26s var(--ease) infinite alternate}
 @keyframes kb{from{transform:scale(1.04)}to{transform:scale(1.12) translate(-1.5%,-1%)}}
+/* hero slideshow: stacked photos crossfade; only the visible one runs the slow zoom */
+.hero-bg .hs{position:absolute;inset:0;display:block;opacity:0;transition:opacity 1.8s ease}
+.hero-bg .hs.on{opacity:1}
+.hero-bg .hs img{object-position:var(--op,50% 50%)}
+.hero-bg .hs:not(.on) img{animation-play-state:paused}
+@media (max-width:760px){.hero-bg .hs img{object-position:var(--op-m,var(--op,50% 50%))}}
+.hero-ctrl{position:absolute;left:0;bottom:30px;display:flex;align-items:center;gap:8px}
+.hero-ctrl[hidden]{display:none}
+.hs-dot{width:8px;height:8px;border-radius:99px;background:rgba(255,255,255,.4);padding:0;transition:width .35s var(--ease),background .35s}
+.hs-dot::before{content:"";display:block;width:24px;height:24px;margin:-8px}
+.hs-dot:hover{background:rgba(255,255,255,.75)}
+.hs-dot.on{width:28px;background:var(--mint)}
+.hs-pause{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.06);margin-right:6px}
+.hs-pause:hover{background:rgba(255,255,255,.16)}
+.hs-pause .i-pause{width:8px;height:10px;border-left:2.5px solid #fff;border-right:2.5px solid #fff}
+.hs-pause[aria-pressed=true] .i-pause{width:0;height:0;border-style:solid;border-width:6px 0 6px 10px;border-color:transparent transparent transparent #fff;margin-left:3px}
+@media (max-width:760px){.hero-ctrl{bottom:22px}}
 .hero-ov{position:absolute;inset:0;background:linear-gradient(90deg,rgba(6,40,34,.92) 0%,rgba(8,46,40,.84) 38%,rgba(10,52,44,.55) 66%,rgba(10,52,44,.32) 100%),linear-gradient(0deg,rgba(6,34,30,.55),transparent 40%)}
 .hero-in{position:relative;padding:96px 0 110px}
 .pill-glass{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:999px;background:rgba(85,220,198,.1);border:1px solid rgba(85,220,198,.25);color:var(--mint);font-size:13px;letter-spacing:.01em}

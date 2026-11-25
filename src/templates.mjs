@@ -148,12 +148,13 @@ export function renderIndex(products, ordered) {
   return head({ title: 'Alphapine & Aromatics — Terpene Derivatives, Essential Oils & Aroma Chemicals', desc: hero.body, base, canonical: '/', jsonld }) + header(base, products, true) + `
 <main id="main">
 <section class="hero" aria-label="Introduction">
-  <div class="hero-bg">${photo(hero.photo, { sizes: '(max-width: 760px) 250vw, 100vw', attrs: `fetchpriority="high" style="object-position:${hero.photoPos}"` })}</div>
+  <div class="hero-bg" aria-hidden="true">${hero.slides.map((s, i) => { const set = PHOTO_W.map(w => `assets/img/${s.photo}-${w}.webp ${w}w`).join(', '), lazy = i ? 'data-' : ''; return `<picture class="hs${i ? '' : ' on'}" style="--op:${s.pos};--op-m:${s.posM}"><source type="image/webp" ${lazy}srcset="${set}" sizes="(max-width: 760px) 250vw, 100vw"><img ${lazy}src="assets/img/${s.photo}.jpg" alt="" width="2000" height="1500" decoding="async"${i ? '' : ' fetchpriority="high"'}></picture>`; }).join('')}</div>
   <div class="hero-ov"></div>
   <div class="wrap hero-in">
     <span class="pill-glass fade-in" style="animation-delay:.05s">${esc(hero.pill)}</span>
     <h1>${h1.map(w => w === '<br>' ? '<br>' : `<span class="w" style="--i:${wi++}">${w}</span> `).join('')}</h1>
     <p class="fade-in">${esc(hero.body)}</p>
+    <div class="hero-ctrl" hidden><button class="hs-pause" type="button" aria-pressed="false" aria-label="Pause background slideshow"><span class="i-pause" aria-hidden="true"></span></button>${hero.slides.map((_, i) => `<button class="hs-dot${i ? '' : ' on'}" type="button" aria-label="Show plant photo ${i + 1} of ${hero.slides.length}"${i ? '' : ' aria-current="true"'}></button>`).join('')}</div>
     <div class="hero-ctas fade-in" style="animation-delay:.9s"><a class="btn btn-teal lg" href="#catalogue">Explore Products ${icon('arrow')}</a><button class="btn btn-ghost lg" data-quote>Request a Quote</button><a class="btn btn-ghost lg" href="${hero.brochure.file}" download="${hero.brochure.name}" type="application/pdf">Download Brochure ${icon('download')}</a></div>
   </div>
 </section>
@@ -410,7 +411,6 @@ export function renderPDP(p, products) {
 <section class="sec">
   <div class="wrap-n d-grid">
     <div data-reveal><p class="eyebrow">Technical specifications</p><h2 class="h2">The full <em>data sheet</em>.</h2><p class="lede" style="margin:20px 0 26px">Every parameter is measured in our in-house laboratory. A batch-specific Certificate of Analysis is available on request before order confirmation.</p>
-      <button class="btn btn-dark" ${quoteAttrs} data-type="Technical datasheet / CoA">Download Full Datasheet ${icon('download')}</button>
       <div class="entry acc" data-acc="multi"><div class="acc-item"><button class="acc-q" aria-expanded="false">Catalogue entry — full product note<span class="tg">${icon('plus')}</span></button><div class="acc-a"><div>
         <h5>${p.cat === 'mfg' ? 'Manufactured note' : 'Quality assured note'}</h5><p>${esc(NOTES[p.cat])}</p>
         <h5>Overview</h5><p>${esc(p.overview)}</p><h5>Characteristics</h5><p>${esc(p.characteristics)}</p><h5>Appearance</h5><p>${esc(p.appearance)}</p><h5>Applications &amp; uses</h5><p>${esc(p.applications)}</p>
@@ -425,7 +425,7 @@ export function renderPDP(p, products) {
 <section class="sec ready">
   <div class="wrap-n r-grid">
     <div data-reveal><p class="eyebrow">Order ${esc(plain)}</p><h2 class="h2">Ready to source<br><em>at scale?</em></h2><p class="lede">MOQ from 25 kg. Sample dispatch within 48 hours. Bulk pricing for 500 kg+ orders. Our specialists respond with a quote, datasheets or a custom-grade discussion.</p>
-      <div class="row"><button class="btn btn-rust" ${quoteAttrs}>Request a Quote ${icon('arrow')}</button><a class="btn btn-wa" href="#" data-wa="${esc(waMsg)}">${icon('wa')} Chat on WhatsApp</a><button class="btn btn-line" ${quoteAttrs} data-type="Sample request">${icon('sample')} Request Sample</button></div></div>
+      <div class="row"><a class="btn btn-wa" href="#" data-wa="${esc(waMsg)}">${icon('wa')} Chat on WhatsApp</a></div></div>
     <div data-reveal style="--i:1">
       ${[['shield', 'GC-MS Verified Batches', 'Every batch profiled in-house before dispatch.'], ['trend', 'Bulk Pricing Available', 'Tiered pricing for 500 kg+ and recurring orders.'], ['globe', 'Domestic & Export Supply', 'Logistics and documentation confirmed with your quote.'], ['clock', '48-Hour Sample Dispatch', 'Evaluate the grade on your own bench first.']].map(([i, t, s]) => `<div class="feat"><span class="ib">${icon(i)}</span><span><b>${t}</b><small>${s}</small></span></div>`).join('')}
     </div>
@@ -467,7 +467,6 @@ export function renderPDP(p, products) {
 </main>
 <aside class="pdp-dock" aria-label="Quick enquiry — ${esc(p.name)}">
   <button class="dock-btn primary" ${quoteAttrs} aria-label="Request a quote for ${esc(p.name)}">${icon('file')}<span class="full">Request a Quote</span><span class="short" aria-hidden="true">Quote</span></button>
-  <button class="dock-btn" ${quoteAttrs} data-type="Sample request" aria-label="Request a sample of ${esc(p.name)}">${icon('sample')}<span class="full">Request a Sample</span><span class="short" aria-hidden="true">Sample</span></button>
 </aside>
 ` + footer(base, false) + modal(products, { side: true }) + scripts(base);
 }
