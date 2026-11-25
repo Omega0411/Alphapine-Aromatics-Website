@@ -35,6 +35,7 @@ function head({ title, desc, base, canonical, jsonld }) {
 <link rel="preload" href="${base}assets/fonts/inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="${base}assets/css/fonts.css${ver('fonts')}">
 <link rel="stylesheet" href="${base}assets/css/main.css${ver('css')}">
+<link rel="stylesheet" href="${base}assets/css/chat.css${ver('chatCss')}">
 ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld)}</script>` : ''}
 </head>
 <body>`;
@@ -116,7 +117,7 @@ function modal(products) {
 }
 
 function scripts(base) {
-  return `<script src="${base}assets/js/config.js${ver('config')}"></script><script src="${base}assets/js/main.js${ver('js')}" defer></script></body></html>`;
+  return `<script src="${base}assets/js/config.js${ver('config')}"></script><script src="${base}assets/js/main.js${ver('js')}" defer></script><script src="${base}assets/js/chat.js${ver('chatJs')}" defer></script></body></html>`;
 }
 
 // ───────────────────────────── product card ─────────────────────────────
