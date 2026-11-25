@@ -264,6 +264,32 @@
     ['.pdp-hero', '#tds-msds .form-card', '.foot'].forEach(s => { const n = $(s); n && io.observe(n); });
   }
 
+  /* ── landing hero: crossfading plant photos ──
+     Slides after the first carry data-src/data-srcset and load after the page, one ahead of the slide shown.
+     Pauses while the hero is off-screen or the tab is hidden; reduced motion → starts paused (dots still work). */
+  const slides = $$('.hero-bg .hs');
+  if (slides.length > 1) {
+    const ctrl = $('.hero-ctrl'), dots = $$('.hs-dot', ctrl), pauseBtn = $('.hs-pause', ctrl);
+    let cur = 0, paused = reduce, onScreen = true, timer = null;
+    const hydrate = (pic) => { if (pic.dataset.ready) return; pic.dataset.ready = '1'; $$('source[data-srcset]', pic).forEach(s => { s.srcset = s.dataset.srcset; }); const img = $('img', pic); if (img.dataset.src) img.src = img.dataset.src; };
+    const loaded = (pic) => { const img = $('img', pic); return pic.dataset.ready && img.complete && img.naturalWidth > 0; };
+    const show = (n) => {
+      const next = (n + slides.length) % slides.length;
+      if (next === cur) return;
+      slides[cur].classList.remove('on'); slides[next].classList.add('on'); cur = next;
+      dots.forEach((d, k) => { d.classList.toggle('on', k === cur); if (k === cur) d.setAttribute('aria-current', 'true'); else d.removeAttribute('aria-current'); });
+      hydrate(slides[(cur + 1) % slides.length]);
+    };
+    const go = (n) => { const pic = slides[(n + slides.length) % slides.length]; hydrate(pic); if (loaded(pic)) show(n); else $('img', pic).addEventListener('load', () => show(n), { once: true }); };
+    const restart = () => { clearInterval(timer); timer = setInterval(() => { if (!paused && onScreen && !document.hidden && loaded(slides[(cur + 1) % slides.length])) show(cur + 1); }, 6500); };
+    const setPaused = (p) => { paused = p; pauseBtn.setAttribute('aria-pressed', String(p)); pauseBtn.setAttribute('aria-label', p ? 'Play background slideshow' : 'Pause background slideshow'); };
+    pauseBtn.addEventListener('click', () => setPaused(!paused));
+    dots.forEach((d, k) => d.addEventListener('click', () => { go(k); restart(); }));
+    if ('IntersectionObserver' in window) new IntersectionObserver(([en]) => { onScreen = en.isIntersecting; }).observe($('.hero'));
+    const start = () => { setPaused(paused); ctrl.hidden = false; hydrate(slides[1]); restart(); };
+    if (document.readyState === 'complete') start(); else addEventListener('load', start, { once: true });
+  }
+
   /* ── year ── */
   $$('[data-year]').forEach(el => el.textContent = new Date().getFullYear());
 }

@@ -32,9 +32,16 @@ export const hero = {
   pill: 'B2B Chemical Manufacturing Excellence',
   // Design copy said "pharma-grade synthetic camphor" — not in the 16-product catalogue, so it is not claimed here.
   body: "India's trusted manufacturer of high-purity terpene derivatives, essential oils and aroma chemicals — delivering precision chemistry to pharmaceutical, FMCG and industrial sectors worldwide.",
-  // Plant photo: assets/img/<photo>-{800,1400,2000}.webp + <photo>.jpg fallback. Decorative behind the headline.
-  photo: 'hero-plant-tank-farm',
-  photoPos: '50% 62%',
+  // Background slideshow of plant photos (crossfade, ~6.5 s each), in this order. Each needs
+  // assets/img/<photo>-{800,1400,2000}.webp + <photo>.jpg. pos / posM = crop on desktop / mobile.
+  slides: [
+    { photo: 'hero-plant-tank-farm', pos: '50% 62%', posM: '55% 50%' },
+    { photo: 'hero-tank-row', pos: '50% 58%', posM: '62% 50%' },
+    { photo: 'facility-plant-exterior', pos: '50% 22%', posM: '66% 50%' },
+    { photo: 'hero-pipe-rack', pos: '50% 42%', posM: '50% 50%' },
+    { photo: 'facility-process-pumps', pos: '50% 58%', posM: '40% 50%' },
+    { photo: 'facility-weighbridge-tank-farm', pos: '50% 40%', posM: '45% 50%' },
+  ],
   brochure: { file: 'assets/docs/alphapine-product-catalogue-2025.pdf', name: 'Alphapine-Aromatics-Product-Catalogue.pdf' },
 };
 
