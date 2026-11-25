@@ -108,7 +108,7 @@
     f.grade.value = opts.grade || '';
     if (opts.msg) f.message.value = opts.msg;
     $('[data-ctx]', modal).textContent = opts.product ? `${opts.type || 'Quote'} · ${opts.product}` : 'Direct procurement';
-    $('#q-title').textContent = opts.type === 'Sample request' ? 'Request a sample' : opts.type === 'Technical datasheet / CoA' ? 'Request the full datasheet' : 'Request a quote';
+    $('#q-title').textContent = opts.type === 'Sample request' ? 'Request a sample' : opts.type === 'Technical datasheet / CoA' ? 'Request the full datasheet' : ($('#q-title').dataset.title || 'Request a quote');
     modal.classList.add('open'); document.body.style.overflow = 'hidden';
     setTimeout(() => f.name.focus(), 120);
   };
@@ -130,6 +130,28 @@
   }));
 
   const validEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v);
+
+  // Stores a submission: Supabase `leads` table when configured (see supabase/schema.sql),
+  // otherwise the optional LEAD_ENDPOINT. Resolves true only when it was actually stored.
+  const LEAD_MAX = { form: 20, name: 200, email: 320, company: 200, phone: 60, country: 100, inquiry_type: 100, product: 200, grade: 200, qty: 100, document: 40, message: 5000, page: 300 };
+  async function saveLead(row, extra) {
+    try {
+      if (SITE.supabaseUrl && SITE.supabaseAnonKey) {
+        const body = {};
+        for (const [k, max] of Object.entries(LEAD_MAX)) { const v = row[k]; if (typeof v === 'string' && v.trim()) body[k] = v.trim().slice(0, max); }
+        if (row.consent != null) body.consent = !!row.consent;
+        const r = await fetch(`${SITE.supabaseUrl}/rest/v1/leads`, { method: 'POST', headers: { apikey: SITE.supabaseAnonKey, Authorization: `Bearer ${SITE.supabaseAnonKey}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify(body) });
+        return r.ok;
+      }
+      if (SITE.leadEndpoint) {
+        const r = await fetch(SITE.leadEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json', ...(SITE.leadHeaders || {}) }, body: JSON.stringify({ ...row, ...extra }) });
+        return r.ok;
+      }
+    } catch { /* network error: fall through to the email / WhatsApp hand-off */ }
+    return false;
+  }
+  // hidden "website" field: people never see it, bots fill it in
+  const isBot = (form) => !!(form.website && form.website.value);
   $$('form[data-lead]').forEach(form => {
     form.addEventListener('input', (e) => e.target.closest('.field') && e.target.closest('.field').classList.remove('bad'));
     form.addEventListener('submit', async (e) => {
@@ -147,12 +169,12 @@
         `Name: ${d.name}`, d.company && `Company: ${d.company}`, `Email: ${d.email}`, d.phone && `Phone: ${d.phone}`, d.message && `Message: ${d.message}`,
       ].filter(Boolean);
       const text = lines.join('\n');
-      const payload = { ...d, consent: true, context: form.dataset.context, page: location.pathname, submitted_at: new Date().toISOString() };
       const card = form.parentElement, done = $('.done', card), btn = $('.submit', form);
-      let sent = false;
-      if (SITE.leadEndpoint) {
+      let sent = isBot(form);
+      if (!sent) {
         btn.disabled = true;
-        try { const r = await fetch(SITE.leadEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json', ...(SITE.leadHeaders || {}) }, body: JSON.stringify(payload) }); sent = r.ok; } catch { sent = false; }
+        sent = await saveLead({ form: form.dataset.context === 'quote' ? 'quote' : 'contact', name: d.name, email: d.email, company: d.company, phone: d.phone, inquiry_type: d.type, product: d.product, grade: d.grade, qty: d.qty, message: d.message, page: location.pathname, consent: true },
+          { type: d.type, context: form.dataset.context, submitted_at: new Date().toISOString() });
         btn.disabled = false;
       }
       $('h4', done).textContent = sent ? 'Thank you — your enquiry has been received.' : 'Your enquiry is ready to send.';
@@ -204,18 +226,22 @@
       if (!validEmail(d.email || '')) bad('email');
       if (!ok) { $('.bad input', docsForm).focus(); return; }
       const docLabel = d.doc === 'Both' ? 'TDS & MSDS' : d.doc;
-      const payload = { name: d.name, company: d.company, email: d.email, phone: d.phone, country: d.country, product: d.product, document: docLabel, type: 'TDS / MSDS request', context: 'tds-msds', page: location.pathname, submitted_at: new Date().toISOString() };
       const btn = $('.submit', docsForm);
-      let sent = false;
-      if (SITE.leadEndpoint) {
+      let sent = isBot(docsForm);
+      if (!sent) {
         btn.disabled = true;
-        try { const r = await fetch(SITE.leadEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json', ...(SITE.leadHeaders || {}) }, body: JSON.stringify(payload) }); sent = r.ok; } catch { sent = false; }
+        sent = await saveLead({ form: 'tds-msds', name: d.name, company: d.company, email: d.email, phone: d.phone, country: d.country, product: d.product, document: docLabel, page: location.pathname },
+          { type: 'TDS / MSDS request', context: 'tds-msds', submitted_at: new Date().toISOString() });
         btn.disabled = false;
       }
       const fallback = $('[data-docs-fallback]', done);
       if (sent) {
-        $('h4', done).textContent = 'Thank you.';
-        $('[data-done-text]', done).textContent = `Your request for ${docLabel} for ${d.product} has been received. Our team will share the document on your email shortly.`;
+        // confirmation text is editable in the CMS: {document} and {product} are filled in here
+        const tpl = docsForm.dataset.confirm || 'Thank you. Your request for {document} for {product} has been received. Our team will share the document on your email shortly.';
+        const msg = tpl.replace(/\{document\}/g, docLabel).replace(/\{product\}/g, d.product);
+        const m = msg.match(/^(Thank you[.!]?)\s+([\s\S]*)$/);
+        $('h4', done).textContent = m ? m[1] : 'Thank you.';
+        $('[data-done-text]', done).textContent = m ? m[2] : msg;
         fallback.hidden = true;
       } else {
         // no lead endpoint configured (or it failed): hand the request to email / WhatsApp rather than claim it was received

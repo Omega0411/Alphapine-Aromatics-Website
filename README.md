@@ -11,6 +11,9 @@ src/templates.mjs       ← page markup (landing + PDP)
 src/lib/art.mjs         ← every illustration (molecules, gallery tiles, hero + facility plates)
 public/assets/          ← css, js, fonts (self-hosted), logos, catalogue PDF
 scripts/build.mjs       ← renders everything into dist/
+scripts/cms.mjs         ← loads published content from Supabase at build time
+src/admin-page.mjs      ← /admin shell; app in public/assets/admin/
+supabase/               ← CMS schema, seed and setup guide
 ```
 
 ## Run locally
@@ -34,16 +37,18 @@ npx serve dist                  # or: npm run dev
 | `products.mjs → sheet` | Rows marked "Reported on batch CoA" (SG, RI, optical rotation, purity where the catalogue gives no figure) — fill with your spec values |
 | Longifolene CAS | Catalogue lists "—". Standard CAS for longifolene is 475-20-7 — confirm and set `cas` |
 
-## CMS (Supabase) — planned hook, already wired
-* **Products**: create table `products (slug text primary key, letter text, data jsonb)` where `data` has the same
-  shape as one object in `products.mjs`. Set `SUPABASE_URL` and `SUPABASE_ANON_KEY` as Vercel env vars → the build
-  pulls from Supabase instead of the local file (falls back to local on error). Add a Supabase webhook → Vercel
-  Deploy Hook so publishing in the CMS triggers a rebuild.
-* **Leads**: set `LEAD_ENDPOINT` (Vercel env) to a Supabase Edge Function URL that inserts into a `leads` table.
-  Forms POST JSON `{name,email,company,phone,type,product,grade,qty,message,context,page,submitted_at}`.
-  Until set, forms validate and hand the enquiry to WhatsApp / email instead (nothing is silently dropped).
-* **WhatsApp bot**: WhatsApp Cloud API webhook → Edge Function → auto-reply + write to `leads`. Site links already
-  use `wa.me/<number>?text=<product context>` so incoming chats arrive pre-tagged with the product.
+## CMS (Supabase) — `/admin`
+Products, FAQs, section copy, form settings and every form response are managed at **`/admin`**.
+**Setup and usage: [`supabase/README.md`](supabase/README.md).**
+* `supabase/schema.sql` creates the tables and access rules; `supabase/seed.sql` loads today's content
+  (regenerate it with `npm run cms:seed` after editing `src/data`).
+* With `SUPABASE_URL` + `SUPABASE_ANON_KEY` set in Vercel, the build reads published content from Supabase
+  (`scripts/cms.mjs`), and the forms save responses to the `leads` table. Without them, the site builds from
+  `src/data` exactly as before.
+* **Publish to website** in the admin calls a Vercel Deploy Hook to rebuild the site.
+* `LEAD_ENDPOINT` still works as an alternative destination for form submissions when Supabase is not configured.
+* **WhatsApp bot (not built)**: WhatsApp Cloud API webhook → Edge Function → auto-reply + write to `leads`. Site links
+  already use `wa.me/<number>?text=<product context>` so incoming chats arrive pre-tagged with the product.
 
 ## Design tokens (seed for the token set)
 Colours: forest `#0b2e2a` · footer `#03272a` · teal CTA `#0e9f90` · mint `#55dcc6` · rust `#c9742f` · cream `#fbf8f1` / `#f7f2ea` / `#efe9dd` · ink `#1f3a34`.

@@ -176,3 +176,44 @@ export const faq = [
   ['How is packaging handled for bulk shipments?',
     'Packaging is specified with each quotation according to product, volume and destination. Oxidation-sensitive terpenes such as Alpha Pinene and DD Turpentine Oil are shipped in sealed containers, as their stability requires.'],
 ];
+
+// ── CMS-editable copy & form settings ─────────────────────────────────────────
+// Defaults for the Supabase `site_content` table (one row per key). At build time a
+// CMS row replaces the matching fields here. In headings, *word* renders in italics
+// (the accent style) and a line break renders as <br>.
+export const content = {
+  catalogue: {
+    eyebrow: 'Product catalogue 2025',
+    heading: 'From terpene to *fragrance* —\na portfolio of sixteen.',
+    intro: catalogueIntro,
+  },
+  faq_section: {
+    eyebrow: 'Frequently asked',
+    heading: 'Answers, before\nyou ask.',
+    intro: 'Everything procurement managers, formulators and R&D teams ask us — distilled into straight answers.',
+    help_title: 'Still have questions?',
+    help_text: 'Our specialists are available on WhatsApp and email for detailed sourcing or grade-related queries.',
+    help_button: 'Contact Us',
+  },
+  quote_form: {
+    title: 'Request a quote',
+    sub: 'Share your requirement — we respond with pricing, availability and a batch CoA.',
+    submit: 'Submit Request',
+    inquiry_types: inquiryTypes,
+  },
+  contact_form: {
+    title: 'Fill the Form for Any Product Related Enquiry or Requesting a Quote',
+    sub: 'Fill in your details below and our technical team will reach out with customized information.',
+    submit: 'Submit Inquiry & Download Brochure',
+  },
+  tds_form: {
+    title: 'Request technical documents',
+    sub: 'Share your details and we will email the requested documents for this product.',
+    submit: 'Submit Request',
+    // {document} and {product} are filled in when the visitor submits
+    confirmation: 'Thank you. Your request for {document} for {product} has been received. Our team will share the document on your email shortly.',
+  },
+  forms_common: {
+    consent: 'I consent to Alphapine & Aromatics processing my data in accordance with the Privacy Policy and DPDP Act regulations.',
+  },
+};

@@ -5,31 +5,18 @@ import { mkdirSync, writeFileSync, readFileSync, cpSync, rmSync, existsSync } fr
 import { createHash } from 'node:crypto';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { products as localProducts, gridOrder } from '../src/data/products.mjs';
 import { site } from '../src/data/site.mjs';
 import { renderIndex, renderPDP, renderIndustries, setAssetVersions } from '../src/templates.mjs';
+import { renderAdmin } from '../src/admin-page.mjs';
+import { loadCms } from './cms.mjs';
 import { sceneForest, scenePlant, sceneColumns, sceneReactor, sceneThermic, sceneLab } from '../src/lib/art.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const out = join(root, 'dist');
 
-// Future CMS hook: when SUPABASE_URL + SUPABASE_ANON_KEY are set, pull products from the
-// `products` table (same shape as src/data/products.mjs) instead of the local file.
-async function loadProducts() {
-  const { SUPABASE_URL, SUPABASE_ANON_KEY } = process.env;
-  if (SUPABASE_URL && SUPABASE_ANON_KEY) {
-    try {
-      const r = await fetch(`${SUPABASE_URL}/rest/v1/products?select=data&order=letter`, { headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` } });
-      if (r.ok) { const rows = await r.json(); if (rows.length) { console.log(`CMS: ${rows.length} products from Supabase`); return rows.map(x => x.data); } }
-      console.warn('CMS fetch returned nothing — falling back to local data');
-    } catch (e) { console.warn('CMS fetch failed — falling back to local data', e.message); }
-  }
-  return localProducts;
-}
-
-const products = await loadProducts();
-const ordered = gridOrder.map(l => products.find(p => p.letter === l)).filter(Boolean);
-products.filter(p => !ordered.includes(p)).forEach(p => ordered.push(p));
+// Content: Supabase CMS when SUPABASE_URL + SUPABASE_ANON_KEY are set, else bundled src/data (see scripts/cms.mjs).
+// products: by catalogue letter (menus, dropdowns, related); ordered: catalogue grid order.
+const { products, ordered } = await loadCms();
 
 if (existsSync(out)) rmSync(out, { recursive: true });
 mkdirSync(join(out, 'products'), { recursive: true });
@@ -47,6 +34,10 @@ window.SITE = ${JSON.stringify({
   // Set to your Supabase Edge Function / API route to store leads, e.g. https://<project>.supabase.co/functions/v1/lead
   leadEndpoint: process.env.LEAD_ENDPOINT || '',
   catalogueUrl: 'assets/docs/alphapine-product-catalogue-2025.pdf',
+  // Supabase project URL + anon (public) key: forms save submissions to the leads table, and /admin signs in.
+  // The anon key is designed to be public; access is enforced by the RLS policies in supabase/schema.sql.
+  supabaseUrl: (process.env.SUPABASE_URL || '').replace(/\/$/, ''),
+  supabaseAnonKey: process.env.SUPABASE_ANON_KEY || '',
   base: '',
 }, null, 2)};
 (function(){var s=document.currentScript&&document.currentScript.src||'';window.SITE.base=s.replace(/assets\\/js\\/config\\.js.*$/,'');})();
@@ -61,15 +52,23 @@ setAssetVersions({
   fonts: hash(readFileSync(join(out, 'assets/css/fonts.css'))),
   js: hash(readFileSync(join(out, 'assets/js/main.js'))),
   config: hash(configJs),
+  adminJs: hash(readFileSync(join(out, 'assets/admin/admin.js'))),
+  adminCss: hash(readFileSync(join(out, 'assets/admin/admin.css'))),
 });
 
 writeFileSync(join(out, 'index.html'), renderIndex(products, ordered));
 writeFileSync(join(out, 'industries.html'), renderIndustries(products));
-for (const p of products) writeFileSync(join(out, 'products', `${p.slug}.html`), renderPDP(p, products));
+for (const p of products) {
+  try { writeFileSync(join(out, 'products', `${p.slug}.html`), renderPDP(p, products)); }
+  catch (e) { throw new Error(`Product page "${p.slug}" failed to render — check this product in the CMS (${e.message})`); }
+}
+// CMS admin (not linked from the site, not indexed)
+mkdirSync(join(out, 'admin'), { recursive: true });
+writeFileSync(join(out, 'admin', 'index.html'), renderAdmin());
 
 // sitemap + robots
 const urls = ['/', '/industries', ...products.map(p => `/products/${p.slug}`)];
 writeFileSync(join(out, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.map(u => `<url><loc>${site.url}${u}</loc></url>`).join('')}</urlset>\n`);
-writeFileSync(join(out, 'robots.txt'), `User-agent: *\nAllow: /\nSitemap: ${site.url}/sitemap.xml\n`);
+writeFileSync(join(out, 'robots.txt'), `User-agent: *\nAllow: /\nDisallow: /admin\nSitemap: ${site.url}/sitemap.xml\n`);
 
 console.log(`Built index + ${products.length} product pages → dist/`);

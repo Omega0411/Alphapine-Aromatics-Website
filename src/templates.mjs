@@ -1,6 +1,6 @@
 // Page templates. Pure functions: data in → HTML string out.
 import { icon, molecule, formulaHTML, flaskArt, sourceArt, chromArt, processArt, appArt, drumsArt, bottleArt } from './lib/art.mjs';
-import { site, nav, hero, ticker, heritage, catalogueIntro, facilities, plant, quality, resources, inquiryTypes, faq, industries, industriesIntro } from './data/site.mjs';
+import { site, nav, hero, ticker, heritage, facilities, plant, quality, resources, faq, industries, industriesIntro, content } from './data/site.mjs';
 import { NOTES } from './data/products.mjs';
 
 export const esc = (s = '') => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -8,10 +8,12 @@ const CAT = { mfg: 'Manufactured', qa: 'Quality Assured' };
 // keep Greek letters lower-case inside uppercase mono labels (α must not become Α)
 const up = (s) => esc(s).replace(/([α-ωΔ]+)/g, '<span class="nt">$1</span>');
 const years = () => new Date().getFullYear() - site.founded;
+// CMS headings: escaped text where *word* becomes <em>word</em> and a line break becomes <br>
+const rich = (s = '') => esc(s).replace(/\*([^*\n]+)\*/g, '<em>$1</em>').replace(/\r?\n/g, '<br>');
 // Cache-busting: /assets/* is cached for 7 days (vercel.json), so CSS/JS URLs carry a content hash set by the build.
 const V = {};
 export const setAssetVersions = (v) => Object.assign(V, v);
-const ver = (k) => (V[k] ? `?v=${V[k]}` : '');
+export const ver = (k) => (V[k] ? `?v=${V[k]}` : '');
 // Responsive plant photo: WebP at 800/1400/2000w with a full-res JPEG fallback (files in public/assets/img/).
 const PHOTO_W = [800, 1400, 2000];
 const photo = (name, { alt = '', sizes, base = '', attrs = '', cls = '' }) => `<picture${cls ? ` class="${cls}" aria-hidden="true"` : ''}><source type="image/webp" srcset="${PHOTO_W.map(w => `${base}assets/img/${name}-${w}.webp ${w}w`).join(', ')}" sizes="${sizes}"><img src="${base}assets/img/${name}.jpg" alt="${esc(alt)}" width="2000" height="1500" decoding="async" ${attrs}></picture>`;
@@ -88,12 +90,12 @@ function formFields(products, { modal = false } = {}) {
   <div class="field"><label for="${modal ? 'm' : 'c'}-email">Your Email *</label><input id="${modal ? 'm' : 'c'}-email" name="email" type="email" required autocomplete="email" placeholder="you@company.com"><span class="err">Please enter a valid email.</span></div>
   <div class="field"><label for="${modal ? 'm' : 'c'}-company">Company Name</label><input id="${modal ? 'm' : 'c'}-company" name="company" autocomplete="organization" placeholder="Your organization"></div>
   <div class="field"><label for="${modal ? 'm' : 'c'}-phone">Phone / WhatsApp</label><input id="${modal ? 'm' : 'c'}-phone" name="phone" type="tel" autocomplete="tel" placeholder="+91 …"></div>
-  <div class="field"><label for="${modal ? 'm' : 'c'}-type">Inquiry Type</label><select id="${modal ? 'm' : 'c'}-type" name="type">${inquiryTypes.map(t => `<option>${t}</option>`).join('')}</select></div>
+  <div class="field"><label for="${modal ? 'm' : 'c'}-type">Inquiry Type</label><select id="${modal ? 'm' : 'c'}-type" name="type">${content.quote_form.inquiry_types.map(t => `<option>${esc(t)}</option>`).join('')}</select></div>
   <div class="field"><label for="${modal ? 'm' : 'c'}-product">Product</label><select id="${modal ? 'm' : 'c'}-product" name="product"><option value="">Select a product</option>${opts}<option>Multiple products</option></select></div>
   ${modal ? `<div class="field"><label for="m-grade">Grade</label><input id="m-grade" name="grade" placeholder="e.g. 90–95% or Perfumery Grade"></div><div class="field"><label for="m-qty">Quantity</label><input id="m-qty" name="qty" placeholder="e.g. 500 kg"></div>` : ''}
   <div class="field full"><label for="${modal ? 'm' : 'c'}-msg">Message</label><textarea id="${modal ? 'm' : 'c'}-msg" name="message" placeholder="Describe your requirement (product name, quantity, specifications…)"></textarea></div>
 </div>
-<label class="consent"><input type="checkbox" name="consent" required> I consent to Alphapine &amp; Aromatics processing my data in accordance with the Privacy Policy and DPDP Act regulations.</label>`;
+<label class="consent"><input type="checkbox" name="consent" required> ${esc(content.forms_common.consent)}</label><div class="hp" aria-hidden="true"><label>Leave this empty<input name="website" tabindex="-1" autocomplete="off"></label></div>`;
 }
 
 function doneBlock() {
@@ -105,9 +107,9 @@ function modal(products) {
   <div class="form-card">
     <button class="x" data-close aria-label="Close">${icon('close')}</button>
     <span class="ctx" data-ctx>Direct procurement</span>
-    <h3 id="q-title">Request a quote</h3>
-    <p class="sub">Share your requirement — we respond with pricing, availability and a batch CoA.</p>
-    <form data-lead data-context="quote" novalidate>${formFields(products, { modal: true })}<button class="submit" type="submit">Submit Request</button></form>
+    <h3 id="q-title" data-title="${esc(content.quote_form.title)}">${esc(content.quote_form.title)}</h3>
+    <p class="sub">${esc(content.quote_form.sub)}</p>
+    <form data-lead data-context="quote" novalidate>${formFields(products, { modal: true })}<button class="submit" type="submit">${esc(content.quote_form.submit)}</button></form>
     ${doneBlock()}
   </div>
 </div>`;
@@ -136,7 +138,8 @@ export function productCard(p, base, i = 0, compact = false) {
 export function renderIndex(products, ordered) {
   const base = '';
   const mfgN = products.filter(p => p.cat === 'mfg').length, qaN = products.length - mfgN;
-  const tItems = ticker.map(([t, slug]) => `<li><a href="${slug ? `products/${slug}.html` : '#catalogue'}">${esc(t)}</a></li>`).join('');
+  const live = new Set(products.map(p => p.slug));
+  const tItems = ticker.map(([t, slug]) => `<li><a href="${slug && live.has(slug) ? `products/${slug}.html` : '#catalogue'}">${esc(t)}</a></li>`).join('');
   const h1 = ['Engineering', '<em>Purity</em>', 'at', '<br>', '<em>Global</em>', '<em>Scale</em>'];
   let wi = 0;
   const jsonld = { '@context': 'https://schema.org', '@type': 'Organization', name: site.name, foundingDate: String(site.founded), url: site.url, email: site.email, description: hero.body };
@@ -180,9 +183,9 @@ export function renderIndex(products, ordered) {
 <section class="sec" id="catalogue">
   <div class="wrap">
     <div class="sec-head" data-reveal>
-      <div><p class="eyebrow">Product catalogue 2025</p><h2 class="h2">From terpene to <em>fragrance</em> —<br>a portfolio of sixteen.</h2>
+      <div><p class="eyebrow">${esc(content.catalogue.eyebrow)}</p><h2 class="h2">${rich(content.catalogue.heading)}</h2>
         <div class="filters" role="tablist" aria-label="Filter products"><button class="on" data-filter="all" role="tab" aria-selected="true">All Products <b>${products.length}</b></button><button data-filter="mfg" role="tab" aria-selected="false">Manufactured <b>${mfgN}</b></button><button data-filter="qa" role="tab" aria-selected="false">Quality Assured <b>${qaN}</b></button></div></div>
-      <p class="lede">${esc(catalogueIntro)}</p>
+      <p class="lede">${esc(content.catalogue.intro)}</p>
     </div>
     <div class="grid3" data-grid>${ordered.map((p, i) => productCard(p, base, i)).join('')}</div>
   </div>
@@ -220,8 +223,8 @@ export function renderIndex(products, ordered) {
       ${resources.items.map(r => `<a class="res" href="${r.file}" download="${hero.brochure.name}" type="application/pdf"><span class="ib">${icon(r.icon)}</span><span><b>${r.title}</b><small>${r.text}</small><em>${r.meta}</em></span><span class="dl">${icon('download')}</span></a>`).join('')}
     </div>
     <div class="form-card" data-reveal style="--i:1">
-      <h3>Fill the Form for Any Product Related Enquiry or Requesting a Quote</h3><p class="sub">Fill in your details below and our technical team will reach out with customized information.</p>
-      <form data-lead data-context="brochure" novalidate>${formFields(products)}<button class="submit" type="submit">Submit Inquiry &amp; Download Brochure</button></form>
+      <h3>${esc(content.contact_form.title)}</h3><p class="sub">${esc(content.contact_form.sub)}</p>
+      <form data-lead data-context="brochure" novalidate>${formFields(products)}<button class="submit" type="submit">${esc(content.contact_form.submit)}</button></form>
       ${doneBlock()}
     </div>
   </div>
@@ -229,8 +232,8 @@ export function renderIndex(products, ordered) {
 
 <section class="sec faq" id="faq">
   <div class="wrap-n f-grid">
-    <div data-reveal><p class="eyebrow">Frequently asked</p><h2 class="h2">Answers, before<br>you ask.</h2><p class="lede" style="margin-top:18px">Everything procurement managers, formulators and R&amp;D teams ask us — distilled into straight answers.</p>
-      <div class="help"><h3>Still have questions?</h3><p>Our specialists are available on WhatsApp and email for detailed sourcing or grade-related queries.</p><button class="btn btn-out sm" data-quote>Contact Us ${icon('arrow')}</button></div></div>
+    <div data-reveal><p class="eyebrow">${esc(content.faq_section.eyebrow)}</p><h2 class="h2">${rich(content.faq_section.heading)}</h2><p class="lede" style="margin-top:18px">${esc(content.faq_section.intro)}</p>
+      <div class="help"><h3>${esc(content.faq_section.help_title)}</h3><p>${esc(content.faq_section.help_text)}</p><button class="btn btn-out sm" data-quote>${esc(content.faq_section.help_button)} ${icon('arrow')}</button></div></div>
     <div class="acc" data-acc="single" data-reveal style="--i:1">${faq.map(([q, a], i) => `<div class="acc-item${i === 0 ? ' open' : ''}"><button class="acc-q" aria-expanded="${i === 0}">${esc(q)}<span class="tg">${icon('plus')}</span></button><div class="acc-a"><div><p>${esc(a)}</p></div></div></div>`).join('')}</div>
   </div>
 </section>
@@ -435,8 +438,8 @@ export function renderPDP(p, products) {
       <div class="res doc-i"><span class="ib">${icon('shield')}</span><span><b>MSDS · Material Safety Data Sheet</b><small>Hazards, safe handling, storage and transport information.</small></span></div>
     </div>
     <div class="form-card" data-reveal style="--i:1">
-      <h3>Request technical documents</h3><p class="sub">Share your details and we will email the requested documents for this product.</p>
-      <form data-docs novalidate>
+      <h3>${esc(content.tds_form.title)}</h3><p class="sub">${esc(content.tds_form.sub)}</p>
+      <form data-docs data-confirm="${esc(content.tds_form.confirmation)}" novalidate>
         <div class="fgrid">
           <div class="field"><label for="d-name">Full Name *</label><input id="d-name" name="name" required autocomplete="name" placeholder="Your full name"><span class="err">Please enter your name.</span></div>
           <div class="field"><label for="d-company">Company Name *</label><input id="d-company" name="company" required autocomplete="organization" placeholder="Your organization"><span class="err">Please enter your company name.</span></div>
@@ -446,7 +449,8 @@ export function renderPDP(p, products) {
           <div class="field"><label for="d-product">Product Name</label><input id="d-product" name="product" value="${esc(p.name)}" readonly></div>
           <div class="field full"><label for="d-doc">Document Requested</label><select id="d-doc" name="doc"><option value="TDS">TDS</option><option value="MSDS">MSDS</option><option value="Both" selected>Both (TDS &amp; MSDS)</option></select></div>
         </div>
-        <button class="submit" type="submit">Submit Request</button>
+        <div class="hp" aria-hidden="true"><label>Leave this empty<input name="website" tabindex="-1" autocomplete="off"></label></div>
+        <button class="submit" type="submit">${esc(content.tds_form.submit)}</button>
       </form>
       <div class="done" aria-live="polite"><div class="tick">${icon('check')}</div><h4></h4><p data-done-text></p><div class="row" data-docs-fallback hidden><a class="btn btn-out" data-done-mail href="#">${icon('mail')} Send via Email</a><a class="btn btn-wa" data-done-wa href="#" target="_blank" rel="noopener">${icon('wa')} Send via WhatsApp</a></div></div>
     </div>
